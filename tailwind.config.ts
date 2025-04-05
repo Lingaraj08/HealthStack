@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,40 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// HealthStack custom colors
+				healthBlue: {
+					100: '#E6F3FF',
+					200: '#B3DFFF',
+					300: '#80CBFF',
+					400: '#4DB7FF',
+					500: '#0077B6',  // Primary blue
+					600: '#005F92',
+					700: '#00476D',
+					800: '#003049',
+					900: '#001824',
+				},
+				healthGreen: {
+					100: '#E6F9F1',
+					200: '#B3EED6',
+					300: '#80E3BB',
+					400: '#4DD8A0',
+					500: '#2EB086',  // Primary green
+					600: '#238D6B',
+					700: '#1A6A50',
+					800: '#104635',
+					900: '#08231A',
+				},
+				healthOrange: {
+					100: '#FFF3E6',
+					200: '#FFDDB3',
+					300: '#FFC680',
+					400: '#FFB04D',
+					500: '#FF9F1C',  // Primary orange
+					600: '#E68600',
+					700: '#B36700',
+					800: '#804900',
+					900: '#4D2C00',
 				}
 			},
 			borderRadius: {
@@ -84,11 +119,21 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-slow': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+				'float': 'float 6s ease-in-out infinite'
 			}
 		}
 	},
