@@ -19,6 +19,7 @@ const Header: React.FC = () => {
           <Link to="/doctors" className="text-gray-700 hover:text-healthBlue-600">Find Doctors</Link>
           <Link to="/records" className="text-gray-700 hover:text-healthBlue-600">Medical Records</Link>
           <Link to="/appointments" className="text-gray-700 hover:text-healthBlue-600">Appointments</Link>
+          {user && <Link to="/profile" className="text-gray-700 hover:text-healthBlue-600">Profile</Link>}
         </nav>
 
         <div className="flex items-center space-x-4">
