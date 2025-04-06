@@ -10,6 +10,9 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Doctors from "./pages/Doctors";
+import DoctorDetail from "./pages/DoctorDetail";
+import MedicalRecords from "./pages/MedicalRecords";
+import Appointments from "./pages/Appointments";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 
@@ -38,6 +41,21 @@ const App = () => {
               <Route path="/doctors" element={
                 <PrivateRoute>
                   <Doctors />
+                </PrivateRoute>
+              } />
+              <Route path="/doctors/:doctorId" element={
+                <PrivateRoute>
+                  <DoctorDetail />
+                </PrivateRoute>
+              } />
+              <Route path="/medical-records" element={
+                <PrivateRoute>
+                  <MedicalRecords />
+                </PrivateRoute>
+              } />
+              <Route path="/appointments" element={
+                <PrivateRoute>
+                  <Appointments />
                 </PrivateRoute>
               } />
               <Route path="/auth" element={<Auth />} />

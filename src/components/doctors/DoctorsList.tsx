@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 // Mock data - in a real app, this would come from Supabase
 const doctors = [
   {
-    id: 1,
+    id: '1',
     name: 'Dr. Priya Sharma',
     specialty: 'Cardiologist',
     experience: '12 years',
@@ -20,7 +20,7 @@ const doctors = [
     available: true
   },
   {
-    id: 2,
+    id: '2',
     name: 'Dr. Rahul Mehta',
     specialty: 'Neurologist',
     experience: '8 years',
@@ -31,7 +31,7 @@ const doctors = [
     available: true
   },
   {
-    id: 3,
+    id: '3',
     name: 'Dr. Ananya Patel',
     specialty: 'Pediatrician',
     experience: '15 years',
@@ -42,7 +42,7 @@ const doctors = [
     available: false
   },
   {
-    id: 4,
+    id: '4',
     name: 'Dr. Vikram Singh',
     specialty: 'Dermatologist',
     experience: '10 years',
@@ -53,7 +53,7 @@ const doctors = [
     available: true
   },
   {
-    id: 5,
+    id: '5',
     name: 'Dr. Nisha Reddy',
     specialty: 'Orthopedic Surgeon',
     experience: '14 years',
@@ -64,7 +64,7 @@ const doctors = [
     available: false
   },
   {
-    id: 6,
+    id: '6',
     name: 'Dr. Arun Kumar',
     specialty: 'ENT Specialist',
     experience: '9 years',
@@ -138,7 +138,7 @@ const DoctorsList: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="border-healthBlue-300 text-healthBlue-600 flex-1"
-                onClick={() => navigate(`/doctors/${doctor.id}/profile`)}
+                onClick={() => navigate(`/doctors/${doctor.id}`)}
               >
                 View Profile
               </Button>
