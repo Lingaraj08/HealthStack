@@ -9,7 +9,149 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_time: string
+          created_at: string | null
+          doctor_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string | null
+        }
+        Insert: {
+          appointment_time: string
+          created_at?: string | null
+          doctor_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string | null
+        }
+        Update: {
+          appointment_time?: string
+          created_at?: string | null
+          doctor_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctors: {
+        Row: {
+          available_for_consultation: boolean | null
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string
+          hospital: string | null
+          id: string
+          qualification: string[] | null
+          rating: number | null
+          specialization: string
+          user_id: string | null
+          years_of_experience: number | null
+        }
+        Insert: {
+          available_for_consultation?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name: string
+          hospital?: string | null
+          id?: string
+          qualification?: string[] | null
+          rating?: number | null
+          specialization: string
+          user_id?: string | null
+          years_of_experience?: number | null
+        }
+        Update: {
+          available_for_consultation?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string
+          hospital?: string | null
+          id?: string
+          qualification?: string[] | null
+          rating?: number | null
+          specialization?: string
+          user_id?: string | null
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
+      medical_records: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_url: string | null
+          id: string
+          record_type: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          record_type: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          record_type?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+          user_role: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
