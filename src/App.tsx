@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Doctors from "./pages/Doctors";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 
@@ -32,6 +33,11 @@ const App = () => {
               <Route path="/profile" element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              } />
+              <Route path="/doctors" element={
+                <PrivateRoute>
+                  <Doctors />
                 </PrivateRoute>
               } />
               <Route path="/auth" element={<Auth />} />
