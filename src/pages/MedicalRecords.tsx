@@ -1,48 +1,21 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, CardContent, CardDescription, 
   CardHeader, CardTitle, CardFooter 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, FilePlus, Calendar, Trash2 } from 'lucide-react';
+import { FileText, FilePlus, Calendar, Trash2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-
-// Mock data - in a real app this would come from Supabase
-const mockRecords = [
-  {
-    id: '1',
-    title: 'Complete Blood Count',
-    record_type: 'Lab Test',
-    description: 'Routine blood test to evaluate overall health and detect a wide range of disorders.',
-    created_at: '2024-03-10T10:30:00Z',
-    file_url: null
-  },
-  {
-    id: '2',
-    title: 'Chest X-Ray',
-    record_type: 'Imaging',
-    description: 'X-ray of chest to examine lungs, heart and other structures.',
-    created_at: '2024-02-15T14:45:00Z',
-    file_url: null
-  },
-  {
-    id: '3',
-    title: 'Cardiology Consultation',
-    record_type: 'Consultation',
-    description: 'Consultation with Dr. Priya Sharma regarding heart palpitations.',
-    created_at: '2024-01-20T11:00:00Z',
-    file_url: null
-  }
-];
+import { useAuth } from '@/components/auth/AuthContext';
+import RecordDetails from '@/components/records/RecordDetails';
 
 const recordTypeOptions = [
   { label: 'Lab Test', value: 'Lab Test' },
@@ -63,27 +36,117 @@ const MedicalRecords = () => {
     description: '',
     file: null as File | null
   });
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  // In a real app, this would be a query to Supabase
-  const { data: records, isLoading, refetch } = useQuery({
-    queryKey: ['medicalRecords'],
+  const { data: records, isLoading, error } = useQuery({
+    queryKey: ['medicalRecords', user?.id],
     queryFn: async () => {
-      // In development, use mock data
-      return mockRecords;
+      if (!user) throw new Error('Not authenticated');
       
-      // In production with Supabase:
-      // const user = await supabase.auth.getUser();
-      // if (!user.data.user) throw new Error('Not authenticated');
+      const { data, error } = await supabase
+        .from('medical_records')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      // const { data, error } = await supabase
-      //   .from('medical_records')
-      //   .select('*')
-      //   .eq('user_id', user.data.user.id)
-      //   .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user
+  });
+  
+  const addRecordMutation = useMutation({
+    mutationFn: async (record: {
+      title: string;
+      record_type: string;
+      description: string;
+      file: File | null;
+    }) => {
+      if (!user) throw new Error('Not authenticated');
       
-      // if (error) throw error;
-      // return data;
+      let fileUrl = null;
+      
+      if (record.file) {
+        const fileExt = record.file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+      
+        const { error: uploadError } = await supabase.storage
+          .from('medical_records')
+          .upload(filePath, record.file);
+      
+        if (uploadError) throw uploadError;
+      
+        fileUrl = supabase.storage
+          .from('medical_records')
+          .getPublicUrl(filePath).data.publicUrl;
+      }
+      
+      const { data, error } = await supabase
+        .from('medical_records')
+        .insert({
+          title: record.title,
+          record_type: record.record_type,
+          description: record.description,
+          user_id: user.id,
+          file_url: fileUrl
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] });
+      setIsAddModalOpen(false);
+      setNewRecord({
+        title: '',
+        record_type: '',
+        description: '',
+        file: null
+      });
+      toast({
+        title: "Record Added",
+        description: "Your medical record has been saved successfully"
+      });
+    },
+    onError: (error) => {
+      console.error('Error adding record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add medical record: " + (error as Error).message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const deleteRecordMutation = useMutation({
+    mutationFn: async (recordId: string) => {
+      const { error } = await supabase
+        .from('medical_records')
+        .delete()
+        .eq('id', recordId);
+      
+      if (error) throw error;
+      return recordId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] });
+      toast({
+        title: "Record Deleted",
+        description: "The medical record has been deleted"
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete medical record: " + (error as Error).message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -102,7 +165,7 @@ const MedicalRecords = () => {
     setNewRecord({ ...newRecord, record_type: value });
   };
 
-  const handleAddRecord = async () => {
+  const handleAddRecord = () => {
     if (!newRecord.title || !newRecord.record_type) {
       toast({
         title: "Missing Information",
@@ -112,99 +175,74 @@ const MedicalRecords = () => {
       return;
     }
 
-    try {
-      // In a real app with Supabase:
-      // const user = await supabase.auth.getUser();
-      // if (!user.data.user) throw new Error('Not authenticated');
-      
-      // let fileUrl = null;
-      // if (newRecord.file) {
-      //   const fileExt = newRecord.file.name.split('.').pop();
-      //   const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      //   const filePath = `${user.data.user.id}/${fileName}`;
-      
-      //   const { error: uploadError } = await supabase.storage
-      //     .from('medical_records')
-      //     .upload(filePath, newRecord.file);
-      
-      //   if (uploadError) throw uploadError;
-      
-      //   fileUrl = supabase.storage
-      //     .from('medical_records')
-      //     .getPublicUrl(filePath).data.publicUrl;
-      // }
-      
-      // const { error } = await supabase
-      //   .from('medical_records')
-      //   .insert({
-      //     title: newRecord.title,
-      //     record_type: newRecord.record_type,
-      //     description: newRecord.description,
-      //     user_id: user.data.user.id,
-      //     file_url: fileUrl
-      //   });
-      
-      // if (error) throw error;
-      
-      toast({
-        title: "Record Added",
-        description: "Your medical record has been saved successfully"
-      });
-      
-      setIsAddModalOpen(false);
-      setNewRecord({
-        title: '',
-        record_type: '',
-        description: '',
-        file: null
-      });
-      
-      refetch();
-      
-    } catch (error) {
-      console.error('Error adding record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add medical record",
-        variant: "destructive"
-      });
-    }
+    addRecordMutation.mutate(newRecord);
   };
 
-  const handleDeleteRecord = async (id: string) => {
-    try {
-      // In a real app with Supabase:
-      // const { error } = await supabase
-      //   .from('medical_records')
-      //   .delete()
-      //   .eq('id', id);
-      
-      // if (error) throw error;
-      
-      toast({
-        title: "Record Deleted",
-        description: "The medical record has been deleted"
-      });
-      
-      refetch();
-      
-    } catch (error) {
-      console.error('Error deleting record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete medical record",
-        variant: "destructive"
-      });
-    }
+  const handleDeleteRecord = (id: string) => {
+    deleteRecordMutation.mutate(id);
   };
+
+  if (!user) {
+    return (
+      <Layout>
+        <div className="container py-12">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <p className="text-lg">Please sign in to view your medical records.</p>
+            <Button onClick={() => window.location.href = '/auth'}>
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (isLoading) {
     return (
       <Layout>
         <div className="container py-12">
           <div className="flex justify-center">
-            <p>Loading medical records...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-healthBlue-600" />
+            <p className="ml-2">Loading medical records...</p>
           </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container py-12">
+          <div className="flex justify-center">
+            <Card className="w-full max-w-md p-6">
+              <CardHeader>
+                <CardTitle className="text-red-600">Error Loading Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{(error as Error).message}</p>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] })}>
+                  Retry
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (selectedRecordId) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-12">
+          <h1 className="text-3xl font-bold mb-8 text-healthBlue-800">Medical Record Details</h1>
+          <RecordDetails 
+            recordId={selectedRecordId} 
+            onBack={() => setSelectedRecordId(null)} 
+          />
         </div>
       </Layout>
     );
@@ -293,11 +331,21 @@ const MedicalRecords = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}
+                  disabled={addRecordMutation.isPending}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddRecord} className="bg-healthBlue-600 hover:bg-healthBlue-700">
-                  Save Record
+                <Button 
+                  onClick={handleAddRecord} 
+                  className="bg-healthBlue-600 hover:bg-healthBlue-700"
+                  disabled={addRecordMutation.isPending}
+                >
+                  {addRecordMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : 'Save Record'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -318,8 +366,17 @@ const MedicalRecords = () => {
                       {record.record_type} • {format(new Date(record.created_at), 'MMMM dd, yyyy')}
                     </CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteRecord(record.id)}>
-                    <Trash2 className="h-4 w-4 text-gray-500" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDeleteRecord(record.id)}
+                    disabled={deleteRecordMutation.isPending}
+                  >
+                    {deleteRecordMutation.isPending && deleteRecordMutation.variables === record.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 text-gray-500" />
+                    )}
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -327,11 +384,13 @@ const MedicalRecords = () => {
                 </CardContent>
                 <CardFooter className="flex justify-end space-x-2">
                   {record.file_url && (
-                    <Button variant="outline">
-                      View File
+                    <Button variant="outline" asChild>
+                      <a href={record.file_url} target="_blank" rel="noopener noreferrer">
+                        View File
+                      </a>
                     </Button>
                   )}
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => setSelectedRecordId(record.id)}>
                     View Details
                   </Button>
                 </CardFooter>

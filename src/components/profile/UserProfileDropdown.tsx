@@ -1,67 +1,104 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
+import { Link } from 'react-router-dom';
+import { User, LogOut, Settings, FileText, Calendar } from 'lucide-react';
+import { 
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/components/auth/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
-const UserProfileDropdown: React.FC = () => {
+const UserProfileDropdown = () => {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  if (!user) return null;
-
-  // Get user's initials for the avatar fallback
+  const { toast } = useToast();
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out"
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was an error signing out",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Get user initials for avatar fallback
   const getInitials = () => {
     if (!user) return 'U';
+    
     if (user.user_metadata?.first_name && user.user_metadata?.last_name) {
       return `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`;
     }
-    return user.email ? user.email[0].toUpperCase() : 'U';
+    
+    const email = user.email || '';
+    return email.charAt(0).toUpperCase();
   };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
+  
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="outline-none">
-        <Avatar className="cursor-pointer">
-          <AvatarImage src={user.user_metadata?.avatar_url || ''} />
-          <AvatarFallback className="bg-healthBlue-600 text-white">
-            {getInitials()}
-          </AvatarFallback>
-        </Avatar>
+      <DropdownMenuTrigger asChild>
+        <button className="focus:outline-none">
+          <Avatar className="h-8 w-8 cursor-pointer border border-gray-200">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-healthBlue-100 text-healthBlue-700">
+              {getInitials()}
+            </AvatarFallback>
+          </Avatar>
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
-          {user.user_metadata?.first_name
-            ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-            : user.email}
+      <DropdownMenuContent align="end" sideOffset={5} className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
+            </p>
+            <p className="text-xs leading-none text-gray-500">{user?.email}</p>
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
-          <User className="mr-2 h-4 w-4" />
-          Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/settings')}>
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link to="/profile" className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/appointments" className="cursor-pointer">
+              <Calendar className="mr-2 h-4 w-4" />
+              <span>Appointments</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/medical-records" className="cursor-pointer">
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Medical Records</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/settings" className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleSignOut}>
+        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
-          Sign out
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
