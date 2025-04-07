@@ -5,7 +5,8 @@
 
 @layer base {
   :root {
-    --background: 195 100% 98%;
+    /* Light mode theme */
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -14,10 +15,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 201 100% 36%;
+    --primary: 210 79% 46%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 160 60% 35%;
+    --secondary: 160 64% 49%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 210 40% 96%;
@@ -31,13 +32,13 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 201 100% 36%;
+    --ring: 210 79% 46%;
 
-    --radius: 0.6rem;
+    --radius: 0.8rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 201 100% 36%;
+    --sidebar-primary: 210 79% 46%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 5% 96%;
     --sidebar-accent-foreground: 240 6% 10%;
@@ -46,41 +47,42 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
+    /* Dark mode theme with cool blues and purples */
+    --background: 224 40% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 11%;
+    --card: 224 40% 13%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 11%;
+    --popover: 224 40% 13%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 201 100% 28%;
+    --primary: 210 79% 56%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 160 60% 28%;
+    --secondary: 160 64% 39%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 217 33% 18%;
+    --muted: 225 33% 20%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 37 90% 50%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 263 70% 70%;
+    --accent-foreground: 220 40% 98%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 0 63% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 201 100% 45%;
+    --border: 225 33% 20%;
+    --input: 225 33% 20%;
+    --ring: 210 79% 56%;
 
-    --sidebar-background: 240 6% 10%;
-    --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 201 100% 45%;
+    --sidebar-background: 224 42% 15%;
+    --sidebar-foreground: 224 5% 96%;
+    --sidebar-primary: 210 79% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 240 4% 16%;
+    --sidebar-accent: 225 25% 25%;
+    --sidebar-accent-foreground: 225 5% 96%;
+    --sidebar-border: 224 25% 25%;
     --sidebar-ring: 217 91% 60%;
   }
 }
@@ -92,7 +94,16 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Custom font classes */
+  .font-nunito {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
   }
 }
 
@@ -102,15 +113,15 @@
   }
   
   .health-heading {
-    @apply text-3xl font-bold text-healthBlue-600 dark:text-healthBlue-400 mb-2;
+    @apply text-3xl font-bold text-healthBlue-500 dark:text-healthBlue-400 mb-2 font-poppins;
   }
   
   .health-subheading {
-    @apply text-xl font-medium text-healthBlue-500 dark:text-healthBlue-300 mb-4;
+    @apply text-xl font-medium text-healthBlue-500 dark:text-healthBlue-300 mb-4 font-nunito;
   }
   
   .health-card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-soft hover:shadow-card transition-shadow duration-300;
   }
   
   .health-gradient {
@@ -127,6 +138,14 @@
   
   .health-button-accent {
     @apply bg-healthOrange-500 hover:bg-healthOrange-600 dark:bg-healthOrange-600 dark:hover:bg-healthOrange-700 text-black dark:text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
+  }
+
+  .health-button-sos {
+    @apply bg-healthRed-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700;
   }
 }
 
@@ -186,3 +205,6 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
+
+/* Add Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');

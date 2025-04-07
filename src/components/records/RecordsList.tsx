@@ -31,15 +31,17 @@ const RecordsList: React.FC<RecordsListProps> = ({
 }) => {
   if (!records || records.length === 0) {
     return (
-      <Card className="text-center p-8">
+      <Card className="text-center p-8 shadow-soft dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col items-center">
-          <FileText className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium mb-2">No records found</h3>
-          <p className="text-gray-600 mb-6">
-            You haven't added any medical records yet.
+          <div className="rounded-full bg-healthBlue-100 dark:bg-healthBlue-900/50 p-4 mb-4">
+            <FileText className="h-12 w-12 text-healthBlue-500 dark:text-healthBlue-400" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2 font-nunito">No records found</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
+            You haven't added any medical records yet. Add your first record to keep track of your health documents.
           </p>
           <Button 
-            className="bg-healthBlue-600 hover:bg-healthBlue-700" 
+            className="bg-healthBlue-500 hover:bg-healthBlue-600 dark:bg-healthBlue-600 dark:hover:bg-healthBlue-700 text-white shadow-soft" 
             onClick={onOpenAddRecord}
           >
             <FilePlus className="mr-2 h-4 w-4" />

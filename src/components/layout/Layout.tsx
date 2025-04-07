@@ -10,9 +10,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header />
-      <main className="flex-grow">
+      <main className="flex-grow pt-4 pb-12">
         {children}
       </main>
       <FloatingChatBot />
