@@ -1,41 +1,19 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Card, CardContent, CardDescription, 
-  CardHeader, CardTitle, CardFooter 
-} from '@/components/ui/card';
+import { FilePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FileText, FilePlus, Calendar, Trash2, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
 import { useAuth } from '@/components/auth/AuthContext';
 import RecordDetails from '@/components/records/RecordDetails';
-
-const recordTypeOptions = [
-  { label: 'Lab Test', value: 'Lab Test' },
-  { label: 'Imaging', value: 'Imaging' },
-  { label: 'Consultation', value: 'Consultation' },
-  { label: 'Prescription', value: 'Prescription' },
-  { label: 'Surgery', value: 'Surgery' },
-  { label: 'Discharge Summary', value: 'Discharge Summary' },
-  { label: 'Vaccination', value: 'Vaccination' },
-  { label: 'Other', value: 'Other' },
-];
+import RecordForm from '@/components/records/RecordForm';
+import RecordsList from '@/components/records/RecordsList';
 
 const MedicalRecords = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newRecord, setNewRecord] = useState({
-    title: '',
-    record_type: '',
-    description: '',
-    file: null as File | null
-  });
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -102,12 +80,6 @@ const MedicalRecords = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] });
       setIsAddModalOpen(false);
-      setNewRecord({
-        title: '',
-        record_type: '',
-        description: '',
-        file: null
-      });
       toast({
         title: "Record Added",
         description: "Your medical record has been saved successfully"
@@ -150,23 +122,13 @@ const MedicalRecords = () => {
     }
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setNewRecord({ ...newRecord, file: e.target.files[0] });
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewRecord({ ...newRecord, [name]: value });
-  };
-
-  const handleRecordTypeChange = (value: string) => {
-    setNewRecord({ ...newRecord, record_type: value });
-  };
-
-  const handleAddRecord = () => {
-    if (!newRecord.title || !newRecord.record_type) {
+  const handleAddRecord = (record: {
+    title: string;
+    record_type: string;
+    description: string;
+    file: File | null;
+  }) => {
+    if (!record.title || !record.record_type) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -175,7 +137,7 @@ const MedicalRecords = () => {
       return;
     }
 
-    addRecordMutation.mutate(newRecord);
+    addRecordMutation.mutate(record);
   };
 
   const handleDeleteRecord = (id: string) => {
@@ -216,17 +178,14 @@ const MedicalRecords = () => {
         <div className="container py-12">
           <div className="flex justify-center">
             <Card className="w-full max-w-md p-6">
-              <CardHeader>
-                <CardTitle className="text-red-600">Error Loading Records</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{(error as Error).message}</p>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] })}>
-                  Retry
-                </Button>
-              </CardFooter>
+              <div className="text-red-600 font-semibold mb-2">Error Loading Records</div>
+              <p>{(error as Error).message}</p>
+              <Button 
+                className="mt-4"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] })}
+              >
+                Retry
+              </Button>
             </Card>
           </div>
         </div>
@@ -257,163 +216,30 @@ const MedicalRecords = () => {
             <p className="text-gray-600 mt-2">Store and manage your health records securely</p>
           </div>
           
-          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="mt-4 md:mt-0 bg-healthBlue-600 hover:bg-healthBlue-700">
-                <FilePlus className="mr-2 h-4 w-4" />
-                Add New Record
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[525px]">
-              <DialogHeader>
-                <DialogTitle>Add New Medical Record</DialogTitle>
-                <DialogDescription>
-                  Enter the details of your medical record below
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="title" className="text-right text-sm font-medium">
-                    Title*
-                  </label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={newRecord.title}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="e.g., Blood Test Results"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="record_type" className="text-right text-sm font-medium">
-                    Record Type*
-                  </label>
-                  <div className="col-span-3">
-                    <Select value={newRecord.record_type} onValueChange={handleRecordTypeChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select record type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {recordTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="description" className="text-right text-sm font-medium">
-                    Description
-                  </label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={newRecord.description}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="Add additional details about this record"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="file" className="text-right text-sm font-medium">
-                    File
-                  </label>
-                  <Input
-                    id="file"
-                    type="file"
-                    onChange={handleFileChange}
-                    className="col-span-3"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}
-                  disabled={addRecordMutation.isPending}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleAddRecord} 
-                  className="bg-healthBlue-600 hover:bg-healthBlue-700"
-                  disabled={addRecordMutation.isPending}
-                >
-                  {addRecordMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : 'Save Record'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            className="mt-4 md:mt-0 bg-healthBlue-600 hover:bg-healthBlue-700"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <FilePlus className="mr-2 h-4 w-4" />
+            Add New Record
+          </Button>
+
+          <RecordForm
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSubmit={handleAddRecord}
+            isSubmitting={addRecordMutation.isPending}
+          />
         </div>
         
-        {records && records.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6">
-            {records.map((record) => (
-              <Card key={record.id}>
-                <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                  <div>
-                    <CardTitle className="flex items-center">
-                      <FileText className="mr-2 h-5 w-5" />
-                      {record.title}
-                    </CardTitle>
-                    <CardDescription>
-                      {record.record_type} • {format(new Date(record.created_at), 'MMMM dd, yyyy')}
-                    </CardDescription>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleDeleteRecord(record.id)}
-                    disabled={deleteRecordMutation.isPending}
-                  >
-                    {deleteRecordMutation.isPending && deleteRecordMutation.variables === record.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 text-gray-500" />
-                    )}
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{record.description}</p>
-                </CardContent>
-                <CardFooter className="flex justify-end space-x-2">
-                  {record.file_url && (
-                    <Button variant="outline" asChild>
-                      <a href={record.file_url} target="_blank" rel="noopener noreferrer">
-                        View File
-                      </a>
-                    </Button>
-                  )}
-                  <Button variant="outline" onClick={() => setSelectedRecordId(record.id)}>
-                    View Details
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="text-center p-8">
-            <div className="flex flex-col items-center">
-              <FileText className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium mb-2">No records found</h3>
-              <p className="text-gray-600 mb-6">
-                You haven't added any medical records yet.
-              </p>
-              <DialogTrigger asChild>
-                <Button className="bg-healthBlue-600 hover:bg-healthBlue-700">
-                  <FilePlus className="mr-2 h-4 w-4" />
-                  Add Your First Record
-                </Button>
-              </DialogTrigger>
-            </div>
-          </Card>
-        )}
+        <RecordsList
+          records={records || []}
+          onDelete={handleDeleteRecord}
+          onViewDetails={(id) => setSelectedRecordId(id)}
+          isDeleting={deleteRecordMutation.isPending}
+          deletingId={deleteRecordMutation.variables}
+          onOpenAddRecord={() => setIsAddModalOpen(true)}
+        />
       </div>
     </Layout>
   );
