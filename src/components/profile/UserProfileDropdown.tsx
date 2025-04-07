@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, LogOut, Settings, FileText, Calendar } from 'lucide-react';
+import { User, LogOut, Settings, FileText, Calendar, Heart, Activity, ShieldAlert, Bell } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -73,7 +73,7 @@ const UserProfileDropdown = () => {
           <DropdownMenuItem asChild>
             <Link to="/profile" className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>My Profile</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
@@ -86,6 +86,30 @@ const UserProfileDropdown = () => {
             <Link to="/medical-records" className="cursor-pointer">
               <FileText className="mr-2 h-4 w-4" />
               <span>Medical Records</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/ai-symptom-checker" className="cursor-pointer">
+              <Activity className="mr-2 h-4 w-4" />
+              <span>Symptom Checker</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/medications" className="cursor-pointer">
+              <Heart className="mr-2 h-4 w-4" />
+              <span>Medications</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/sos-contacts" className="cursor-pointer">
+              <ShieldAlert className="mr-2 h-4 w-4" />
+              <span>Emergency Contacts</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/notifications" className="cursor-pointer">
+              <Bell className="mr-2 h-4 w-4" />
+              <span>Notifications</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

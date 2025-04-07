@@ -1,401 +1,441 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Layout from '../components/layout/Layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Save } from 'lucide-react';
+import { ProfileData } from '@/types/profile';
+import { Camera, Save, User, UserCircle, Phone, MapPin, Calendar, HeartPulse, Users, Activity, ShieldAlert } from 'lucide-react';
+import { format } from 'date-fns';
 
-type ProfileData = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone_number: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  blood_type: string | null;
-  emergency_contact: string | null;
-  health_id: string | null;
-  address: string | null;
-};
-
-const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-const genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
-
-const Profile: React.FC = () => {
+const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const [profileForm, setProfileForm] = useState<Partial<ProfileData>>({
-    first_name: '',
-    last_name: '',
-    phone_number: '',
-    date_of_birth: '',
-    gender: '',
-    blood_type: '',
-    emergency_contact: '',
-    health_id: '',
-    address: '',
-  });
-  
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // Fetch profile data
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('Not authenticated');
-      
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+
+  // Form fields
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('');
+  const [address, setAddress] = useState('');
+  const [bloodType, setBloodType] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
+  const [healthId, setHealthId] = useState('');
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      if (!user) return;
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-      
-      if (error) throw error;
-      return data as ProfileData;
-    },
-    enabled: !!user
-  });
-  
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updatedProfile: Partial<ProfileData>) => {
-      if (!user) throw new Error('Not authenticated');
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(updatedProfile)
-        .eq('id', user.id);
-      
-      if (error) throw error;
-      return updatedProfile;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setProfileData(data as ProfileData);
+        setFirstName(data.first_name || '');
+        setLastName(data.last_name || '');
+        setPhone(data.phone_number || '');
+        setDob(data.date_of_birth || '');
+        setGender(data.gender || '');
+        setAddress(data.address || '');
+        setBloodType(data.blood_type || '');
+        setEmergencyContact(data.emergency_contact || '');
+        setHealthId(data.health_id || '');
+      }
+    } catch (error: any) {
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully"
-      });
-      setIsEditing(false);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update profile: " + (error as Error).message,
+        title: "Error fetching profile",
+        description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-  });
-  
-  // Initialize form with profile data when it's loaded
+  };
+
   useEffect(() => {
-    if (profile) {
-      setProfileForm({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
-        phone_number: profile.phone_number || '',
-        date_of_birth: profile.date_of_birth || '',
-        gender: profile.gender || '',
-        blood_type: profile.blood_type || '',
-        emergency_contact: profile.emergency_contact || '',
-        health_id: profile.health_id || '',
-        address: profile.address || '',
+    fetchProfile();
+  }, [user]);
+
+  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user!.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user!.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Avatar updated successfully!',
       });
+      
+      fetchProfile();
+    } catch (error: any) {
+      toast({
+        title: 'Error updating avatar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
     }
-  }, [profile]);
-  
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfileForm((prev) => ({ ...prev, [name]: value }));
   };
-  
-  // Handle select changes
-  const handleSelectChange = (name: string, value: string) => {
-    setProfileForm((prev) => ({ ...prev, [name]: value }));
+
+  const updateProfile = async () => {
+    try {
+      setLoading(true);
+      
+      if (!user) throw new Error('No user');
+
+      const updates = {
+        id: user.id,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phone,
+        date_of_birth: dob,
+        gender,
+        address,
+        blood_type: bloodType,
+        emergency_contact: emergencyContact,
+        health_id: healthId,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Profile updated!',
+        description: 'Your profile has been updated successfully.',
+      });
+      
+      fetchProfile();
+    } catch (error: any) {
+      toast({
+        title: 'Error updating profile',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate(profileForm);
-  };
-  
-  // Extract user initials for avatar fallback
+
   const getInitials = () => {
-    if (!user) return 'U';
-    
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`;
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
     }
     
-    const email = user.email || '';
-    return email.charAt(0).toUpperCase();
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    
+    return 'U';
   };
-
-  if (!user) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-12 max-w-4xl">
-          <Card className="p-6">
-            <CardHeader>
-              <CardTitle>Authentication Required</CardTitle>
-              <CardDescription>
-                Please sign in to view and edit your profile.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Button onClick={() => window.location.href = '/auth'}>
-                Sign In
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-12 max-w-4xl">
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-healthBlue-600" />
-            <p className="ml-2">Loading profile...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
-      <div className="container mx-auto py-12 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 text-healthBlue-800">Your Profile</h1>
-        
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16 border-2 border-healthBlue-200">
-                <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-healthBlue-100 text-healthBlue-700 text-lg">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-xl">
-                  {profile?.first_name || ''} {profile?.last_name || ''}
+      <div className="container max-w-5xl py-8 space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+            <p className="text-muted-foreground">
+              Manage your personal health information
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-healthBlue-600 border-t-transparent"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Profile Card */}
+            <Card>
+              <CardContent className="pt-6 flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  <Avatar className="h-24 w-24 border-2 border-healthBlue-100">
+                    <AvatarImage src={profileData?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-healthBlue-100 text-healthBlue-700 text-xl">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute bottom-0 right-0">
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <div className="rounded-full bg-healthBlue-500 p-1.5 text-white hover:bg-healthBlue-600 transition">
+                        <Camera size={16} />
+                      </div>
+                      <input
+                        type="file"
+                        id="avatar-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={uploadAvatar}
+                        disabled={uploading}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <h3 className="text-xl font-medium">
+                  {firstName} {lastName}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">{user?.email}</p>
+                <div className="w-full space-y-3 text-left">
+                  <div className="flex items-center text-sm">
+                    <Phone className="h-4 w-4 mr-2 text-healthBlue-500" />
+                    <span className="font-medium mr-1">Phone:</span>
+                    {phone || 'Not provided'}
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Calendar className="h-4 w-4 mr-2 text-healthBlue-500" />
+                    <span className="font-medium mr-1">Date of Birth:</span>
+                    {dob ? format(new Date(dob), 'PP') : 'Not provided'}
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <User className="h-4 w-4 mr-2 text-healthBlue-500" />
+                    <span className="font-medium mr-1">Gender:</span>
+                    {gender || 'Not provided'}
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <MapPin className="h-4 w-4 mr-2 text-healthBlue-500" />
+                    <span className="font-medium mr-1">Address:</span>
+                    {address || 'Not provided'}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Edit Profile */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <UserCircle className="mr-2 h-5 w-5" /> Edit Profile
                 </CardTitle>
-                <CardDescription>{user?.email}</CardDescription>
-              </div>
-              <div className="ml-auto">
-                {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)}>
-                    Edit Profile
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="personal">
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="personal">Personal Details</TabsTrigger>
+                    <TabsTrigger value="medical">Medical Information</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="personal" className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dob">Date of Birth</Label>
+                        <Input
+                          id="dob"
+                          type="date"
+                          value={dob}
+                          onChange={(e) => setDob(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gender">Gender</Label>
+                        <select
+                          id="gender"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                        >
+                          <option value="">Select gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                          <option value="prefer_not_to_say">Prefer not to say</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input
+                          id="address"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="medical" className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bloodType">Blood Type</Label>
+                        <select
+                          id="bloodType"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          value={bloodType}
+                          onChange={(e) => setBloodType(e.target.value)}
+                        >
+                          <option value="">Select blood type</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                        <Input
+                          id="emergencyContact"
+                          value={emergencyContact}
+                          onChange={(e) => setEmergencyContact(e.target.value)}
+                          placeholder="Name: Phone"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="healthId">Health ID</Label>
+                        <Input
+                          id="healthId"
+                          value={healthId}
+                          onChange={(e) => setHealthId(e.target.value)}
+                          placeholder="Your ABHA ID"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <div className="flex justify-end mt-6">
+                  <Button
+                    onClick={updateProfile}
+                    disabled={loading}
+                    className="health-button-primary"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" /> Save Changes
+                      </>
+                    )}
                   </Button>
-                ) : (
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {!isEditing ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-medium text-gray-700">Email</h3>
-                    <p>{user?.email}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Health Cards */}
+            <Card className="md:col-span-3">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="mr-2 h-5 w-5" /> Health Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-healthBlue-50 p-4 rounded-lg border border-healthBlue-100">
+                    <div className="flex items-center mb-2">
+                      <HeartPulse className="text-healthBlue-600 mr-2" />
+                      <h3 className="font-semibold">Blood Type</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-healthBlue-700">
+                      {bloodType || 'Not set'}
+                    </p>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Phone</h3>
-                    <p>{profile?.phone_number || 'Not provided'}</p>
+
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                    <div className="flex items-center mb-2">
+                      <ShieldAlert className="text-indigo-600 mr-2" />
+                      <h3 className="font-semibold">Emergency Contact</h3>
+                    </div>
+                    <p className={`${emergencyContact ? 'text-base' : 'text-2xl'} font-bold text-indigo-700`}>
+                      {emergencyContact || 'Not set'}
+                    </p>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Date of Birth</h3>
-                    <p>{profile?.date_of_birth || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Gender</h3>
-                    <p>{profile?.gender || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Blood Type</h3>
-                    <p>{profile?.blood_type || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Emergency Contact</h3>
-                    <p>{profile?.emergency_contact || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Address</h3>
-                    <p>{profile?.address || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Account Created</h3>
-                    <p>{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <div className="flex items-center mb-2">
+                      <Users className="text-green-600 mr-2" />
+                      <h3 className="font-semibold">Health ID</h3>
+                    </div>
+                    <p className="text-base font-bold text-green-700 truncate">
+                      {healthId || 'Not set'}
+                    </p>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="first_name" className="text-sm font-medium">First Name</label>
-                      <Input
-                        id="first_name"
-                        name="first_name"
-                        value={profileForm.first_name || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="last_name" className="text-sm font-medium">Last Name</label>
-                      <Input
-                        id="last_name"
-                        name="last_name"
-                        value={profileForm.last_name || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="phone_number" className="text-sm font-medium">Phone</label>
-                      <Input
-                        id="phone_number"
-                        name="phone_number"
-                        value={profileForm.phone_number || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="date_of_birth" className="text-sm font-medium">Date of Birth</label>
-                      <Input
-                        id="date_of_birth"
-                        name="date_of_birth"
-                        type="date"
-                        value={profileForm.date_of_birth || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="gender" className="text-sm font-medium">Gender</label>
-                      <Select
-                        value={profileForm.gender || ''}
-                        onValueChange={(value) => handleSelectChange('gender', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {genderOptions.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="blood_type" className="text-sm font-medium">Blood Type</label>
-                      <Select
-                        value={profileForm.blood_type || ''}
-                        onValueChange={(value) => handleSelectChange('blood_type', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select blood type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {bloodTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="emergency_contact" className="text-sm font-medium">Emergency Contact</label>
-                      <Input
-                        id="emergency_contact"
-                        name="emergency_contact"
-                        value={profileForm.emergency_contact || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="health_id" className="text-sm font-medium">Health ID</label>
-                      <Input
-                        id="health_id"
-                        name="health_id"
-                        value={profileForm.health_id || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label htmlFor="address" className="text-sm font-medium">Address</label>
-                      <Input
-                        id="address"
-                        name="address"
-                        value={profileForm.address || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      type="submit" 
-                      disabled={updateProfileMutation.isPending}
-                      className="bg-healthBlue-600 hover:bg-healthBlue-700"
-                    >
-                      {updateProfileMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Health Information</CardTitle>
-            <CardDescription>
-              Connect your health ID and manage your medical information
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-healthBlue-50 rounded-lg border border-healthBlue-100">
-              <h3 className="font-medium text-healthBlue-700 mb-2">Connect Health ID</h3>
-              <p className="text-gray-600 mb-4">
-                Link your Ayushman Bharat Digital Health ID for seamless healthcare services.
-              </p>
-              <Button className="bg-healthBlue-600 hover:bg-healthBlue-700">
-                Connect Health ID
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Layout>
   );

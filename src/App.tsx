@@ -13,6 +13,9 @@ import Doctors from "./pages/Doctors";
 import DoctorDetail from "./pages/DoctorDetail";
 import MedicalRecords from "./pages/MedicalRecords";
 import Appointments from "./pages/Appointments";
+import AiSymptomChecker from "./pages/AiSymptomChecker";
+import Medications from "./pages/Medications";
+import SosContacts from "./pages/SosContacts";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 
@@ -56,6 +59,21 @@ const App = () => {
               <Route path="/appointments" element={
                 <PrivateRoute>
                   <Appointments />
+                </PrivateRoute>
+              } />
+              <Route path="/ai-symptom-checker" element={
+                <PrivateRoute>
+                  <AiSymptomChecker />
+                </PrivateRoute>
+              } />
+              <Route path="/medications" element={
+                <PrivateRoute>
+                  <Medications />
+                </PrivateRoute>
+              } />
+              <Route path="/sos-contacts" element={
+                <PrivateRoute>
+                  <SosContacts />
                 </PrivateRoute>
               } />
               <Route path="/auth" element={<Auth />} />
