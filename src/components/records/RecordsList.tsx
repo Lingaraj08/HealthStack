@@ -39,7 +39,10 @@ const RecordsList: React.FC<RecordsListProps> = ({
           <p className="text-gray-600 mb-6">
             You haven't added any medical records yet.
           </p>
-          <Button className="bg-healthBlue-600 hover:bg-healthBlue-700" onClick={onOpenAddRecord}>
+          <Button 
+            className="bg-healthBlue-600 hover:bg-healthBlue-700" 
+            onClick={onOpenAddRecord}
+          >
             <FilePlus className="mr-2 h-4 w-4" />
             Add Your First Record
           </Button>

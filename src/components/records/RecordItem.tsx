@@ -27,6 +27,16 @@ const RecordItem: React.FC<RecordItemProps> = ({
   isDeleting,
   deletingId
 }) => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(record.id);
+  };
+
+  const handleViewDetails = () => {
+    onViewDetails(record.id);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
@@ -42,8 +52,8 @@ const RecordItem: React.FC<RecordItemProps> = ({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onDelete(record.id)}
-          disabled={isDeleting}
+          onClick={handleDelete}
+          disabled={isDeleting && deletingId === record.id}
         >
           {isDeleting && deletingId === record.id ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -63,7 +73,7 @@ const RecordItem: React.FC<RecordItemProps> = ({
             </a>
           </Button>
         )}
-        <Button variant="outline" onClick={() => onViewDetails(record.id)}>
+        <Button variant="outline" onClick={handleViewDetails}>
           View Details
         </Button>
       </CardFooter>
