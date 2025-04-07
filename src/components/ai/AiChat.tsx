@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, Bot, Wand2, RefreshCcw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,10 @@ type Message = {
   sender: 'user' | 'ai';
   timestamp: Date;
 };
+
+interface AiChatProps {
+  isFloating?: boolean;
+}
 
 const initialMessages: Message[] = [
   {
@@ -30,7 +34,7 @@ const suggestedQuestions = [
   "What vaccination schedule should I follow?",
 ];
 
-const AiChat: React.FC = () => {
+const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +45,7 @@ const AiChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -114,28 +118,30 @@ const AiChat: React.FC = () => {
   };
 
   return (
-    <Card className="flex flex-col h-full border shadow-sm">
-      <div className="flex items-center justify-between p-4 border-b bg-healthBlue-50">
-        <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-healthBlue-500 flex items-center justify-center mr-3">
-            <Bot className="h-5 w-5 text-white" />
+    <Card className={`flex flex-col h-full border shadow-sm ${isFloating ? 'rounded-none border-0' : ''}`}>
+      {!isFloating && (
+        <div className="flex items-center justify-between p-4 border-b bg-healthBlue-50">
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-full bg-healthBlue-500 flex items-center justify-center mr-3">
+              <Bot className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-800">AI Health Assistant</h2>
+              <p className="text-xs text-gray-500">Available 24/7 for health queries</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-gray-800">AI Health Assistant</h2>
-            <p className="text-xs text-gray-500">Available 24/7 for health queries</p>
-          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-gray-500 hover:text-healthBlue-500"
+            onClick={handleResetChat}
+          >
+            <RefreshCcw className="h-4 w-4 mr-1" /> Reset
+          </Button>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-gray-500 hover:text-healthBlue-500"
-          onClick={handleResetChat}
-        >
-          <RefreshCcw className="h-4 w-4 mr-1" /> Reset
-        </Button>
-      </div>
+      )}
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className={`flex-1 ${isFloating ? 'p-3' : 'p-4'}`}>
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -155,8 +161,8 @@ const AiChat: React.FC = () => {
                   </div>
                 )}
                 <div>
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
+                  <p className={`${isFloating ? 'text-xs' : 'text-sm'}`}>{message.content}</p>
+                  <p className={`${isFloating ? 'text-[10px]' : 'text-xs'} opacity-70 mt-1`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -183,7 +189,7 @@ const AiChat: React.FC = () => {
         </div>
       </ScrollArea>
 
-      {messages.length <= 2 && (
+      {messages.length <= 2 && !isFloating && (
         <div className="px-4 py-3 border-t bg-gray-50">
           <p className="text-xs text-gray-500 mb-2">Suggested questions:</p>
           <div className="flex flex-wrap gap-2">
@@ -202,7 +208,7 @@ const AiChat: React.FC = () => {
         </div>
       )}
 
-      <div className="p-4 border-t flex items-end">
+      <div className={`${isFloating ? 'p-2' : 'p-4'} border-t flex items-end`}>
         <div className="relative flex-1">
           <Input
             id="chat-input"
@@ -210,7 +216,7 @@ const AiChat: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            className="pr-10"
+            className={`pr-10 ${isFloating ? 'h-9 text-sm' : ''}`}
             disabled={isLoading}
           />
           {input && (
@@ -228,7 +234,7 @@ const AiChat: React.FC = () => {
         {!input && (
           <Button
             className="ml-2 health-button-primary"
-            size="icon"
+            size={isFloating ? "sm" : "icon"}
             disabled={isLoading}
           >
             <Wand2 className="h-4 w-4" />
@@ -236,11 +242,13 @@ const AiChat: React.FC = () => {
         )}
       </div>
 
-      <div className="px-4 py-2 bg-healthBlue-50 text-center border-t">
-        <p className="text-xs text-gray-500">
-          This AI assistant provides general health information and is not a substitute for professional medical advice.
-        </p>
-      </div>
+      {!isFloating && (
+        <div className="px-4 py-2 bg-healthBlue-50 text-center border-t">
+          <p className="text-xs text-gray-500">
+            This AI assistant provides general health information and is not a substitute for professional medical advice.
+          </p>
+        </div>
+      )}
     </Card>
   );
 };

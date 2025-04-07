@@ -7,9 +7,14 @@ import AiFeatures from '@/components/dashboard/AiFeatures';
 import DoctorsSection from '@/components/dashboard/DoctorsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { FileText, Calendar, User, FileSearch } from 'lucide-react';
 import AiChat from '@/components/ai/AiChat';
+import { Button } from '@/components/ui/button';
 
 const Index: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <Layout>
       <HeroSection />
@@ -46,17 +51,29 @@ const Index: React.FC = () => {
                 <Card className="p-6 space-y-4 flex flex-col">
                   <h3 className="font-semibold text-xl text-gray-800">Quick Access</h3>
                   <div className="flex-1 space-y-3">
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate('/doctors')}
+                    >
                       <p className="font-medium">Find Doctors</p>
                     </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate('/appointments')}
+                    >
                       <p className="font-medium">Book Appointment</p>
                     </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate('/medications')}
+                    >
                       <p className="font-medium">Order Medicines</p>
                     </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                      <p className="font-medium">View Lab Reports</p>
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate('/medical-records')}
+                    >
+                      <p className="font-medium">View Medical Records</p>
                     </div>
                   </div>
                 </Card>
@@ -65,17 +82,51 @@ const Index: React.FC = () => {
             
             <TabsContent value="records">
               <div className="text-center p-12">
-                <h3 className="font-semibold text-xl mb-2">Medical Records</h3>
-                <p className="text-gray-600 mb-4">Connect your Health ID to view and manage your medical records securely.</p>
-                <button className="health-button-primary">Connect Health ID</button>
+                <div className="flex flex-col items-center">
+                  <FileText className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="font-semibold text-xl mb-2">Medical Records</h3>
+                  <p className="text-gray-600 mb-4">Connect your Health ID to view and manage your medical records securely.</p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => navigate('/medical-records')}
+                      className="health-button-primary"
+                    >
+                      View Records
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="border-healthBlue-300 text-healthBlue-600"
+                      onClick={() => {}}
+                    >
+                      Connect Health ID
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             
             <TabsContent value="appointments">
               <div className="text-center p-12">
-                <h3 className="font-semibold text-xl mb-2">Appointments</h3>
-                <p className="text-gray-600 mb-4">You don't have any upcoming appointments.</p>
-                <button className="health-button-primary">Book an Appointment</button>
+                <div className="flex flex-col items-center">
+                  <Calendar className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="font-semibold text-xl mb-2">Appointments</h3>
+                  <p className="text-gray-600 mb-4">Schedule, manage, and keep track of your healthcare appointments.</p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => navigate('/appointments')}
+                      className="health-button-primary"
+                    >
+                      View Appointments
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="border-healthBlue-300 text-healthBlue-600"
+                      onClick={() => navigate('/appointments')}
+                    >
+                      Book an Appointment
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             

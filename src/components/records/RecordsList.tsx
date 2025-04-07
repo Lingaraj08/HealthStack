@@ -4,7 +4,6 @@ import { FileText, FilePlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import RecordItem from './RecordItem';
-import { DialogTrigger } from '@/components/ui/dialog';
 
 interface RecordsListProps {
   records: Array<{

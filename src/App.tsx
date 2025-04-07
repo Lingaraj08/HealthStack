@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,9 +18,29 @@ import Medications from "./pages/Medications";
 import SosContacts from "./pages/SosContacts";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
+import { validateEnvVariables } from "./lib/env";
+import { useToast } from "./hooks/use-toast";
 
 // Create a client
 const queryClient = new QueryClient();
+
+const EnvValidator = () => {
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const { valid, missing } = validateEnvVariables();
+    
+    if (!valid) {
+      toast({
+        title: "Environment Configuration Missing",
+        description: `Missing environment variables: ${missing.join(", ")}. Please check your .env file.`,
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+  
+  return null;
+};
 
 const App = () => {
   return (
@@ -29,6 +49,7 @@ const App = () => {
         <AuthProvider>
           <Toaster />
           <Sonner />
+          <EnvValidator />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={

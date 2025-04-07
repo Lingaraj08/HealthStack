@@ -88,6 +88,7 @@
 @layer base {
   * {
     @apply border-border;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 
   body {
@@ -101,15 +102,15 @@
   }
   
   .health-heading {
-    @apply text-3xl font-bold text-healthBlue-600 mb-2;
+    @apply text-3xl font-bold text-healthBlue-600 dark:text-healthBlue-400 mb-2;
   }
   
   .health-subheading {
-    @apply text-xl font-medium text-healthBlue-500 mb-4;
+    @apply text-xl font-medium text-healthBlue-500 dark:text-healthBlue-300 mb-4;
   }
   
   .health-card {
-    @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300;
   }
   
   .health-gradient {
@@ -117,14 +118,71 @@
   }
   
   .health-button-primary {
-    @apply bg-healthBlue-500 hover:bg-healthBlue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
+    @apply bg-healthBlue-500 hover:bg-healthBlue-600 dark:bg-healthBlue-600 dark:hover:bg-healthBlue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
   }
   
   .health-button-secondary {
-    @apply bg-healthGreen-500 hover:bg-healthGreen-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
+    @apply bg-healthGreen-500 hover:bg-healthGreen-600 dark:bg-healthGreen-600 dark:hover:bg-healthGreen-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
   }
   
   .health-button-accent {
-    @apply bg-healthOrange-500 hover:bg-healthOrange-600 text-black font-medium py-2 px-4 rounded-lg transition-colors duration-300;
+    @apply bg-healthOrange-500 hover:bg-healthOrange-600 dark:bg-healthOrange-600 dark:hover:bg-healthOrange-700 text-black dark:text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300;
   }
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulse-slow {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0.3; }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
