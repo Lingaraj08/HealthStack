@@ -5,17 +5,34 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AiChat from './AiChat';
 import { ENV } from '@/lib/env';
+import MoodDetector, { Mood } from '../mood/MoodDetector';
+import QuoteDisplay from '../mood/QuoteDisplay';
 
 const FloatingChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [detectedMood, setDetectedMood] = useState<Mood>(null);
+  const [showQuote, setShowQuote] = useState(false);
 
   // If AI features are disabled via environment variable, don't render anything
   if (!ENV.ENABLE_AI_FEATURES) {
     return null;
   }
 
+  const handleMoodDetected = (mood: Mood) => {
+    setDetectedMood(mood);
+    setShowQuote(true);
+  };
+
+  const handleCloseQuote = () => {
+    setShowQuote(false);
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      {showQuote && (
+        <QuoteDisplay mood={detectedMood} onClose={handleCloseQuote} />
+      )}
+      
       {isOpen ? (
         <Card className="w-80 md:w-96 h-[500px] shadow-card border border-healthBlue-300 dark:border-healthBlue-700 overflow-hidden flex flex-col animate-fade-in rounded-2xl">
           <div className="flex items-center justify-between bg-healthBlue-500 dark:bg-healthBlue-600 text-white p-3">
@@ -34,6 +51,9 @@ const FloatingChatBot: React.FC = () => {
           </div>
           <div className="flex-grow overflow-hidden">
             <AiChat isFloating={true} />
+          </div>
+          <div className="p-2 border-t">
+            <MoodDetector onMoodDetected={handleMoodDetected} active={isOpen} />
           </div>
         </Card>
       ) : (
