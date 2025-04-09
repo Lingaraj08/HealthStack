@@ -8,9 +8,10 @@ import DoctorsSection from '@/components/dashboard/DoctorsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, User, FileSearch } from 'lucide-react';
+import { FileText, Calendar, User, FileSearch, IndianRupee } from 'lucide-react';
 import AiChat from '@/components/ai/AiChat';
 import { Button } from '@/components/ui/button';
+import PaymentsSection from '@/components/payments/PaymentsSection';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -22,10 +23,11 @@ const Index: React.FC = () => {
       <div className="bg-white py-12">
         <div className="health-container">
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="records">Medical Records</TabsTrigger>
               <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="payments">Payments</TabsTrigger>
               <TabsTrigger value="ai">AI Assistant</TabsTrigger>
             </TabsList>
             
@@ -128,6 +130,10 @@ const Index: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="payments">
+              <PaymentsSection />
             </TabsContent>
             
             <TabsContent value="ai" className="h-[600px]">
