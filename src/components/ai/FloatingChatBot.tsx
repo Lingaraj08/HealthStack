@@ -6,11 +6,13 @@ import { Card } from '@/components/ui/card';
 import AiChat from './AiChat';
 import MoodDetector, { Mood } from '../mood/MoodDetector';
 import QuoteDisplay from '../mood/QuoteDisplay';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const FloatingChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [detectedMood, setDetectedMood] = useState<Mood>(null);
   const [showQuote, setShowQuote] = useState(false);
+  const [moodDetectorActive, setMoodDetectorActive] = useState(false);
 
   // AI features are always enabled by default
   const enableAiFeatures = true;
@@ -29,12 +31,40 @@ const FloatingChatBot: React.FC = () => {
     setShowQuote(false);
   };
 
+  const toggleMoodDetector = () => {
+    setMoodDetectorActive(!moodDetectorActive);
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-4 items-end">
       {showQuote && (
         <QuoteDisplay mood={detectedMood} onClose={handleCloseQuote} />
       )}
       
+      {/* Mood Detector Button */}
+      <Button 
+        onClick={toggleMoodDetector} 
+        className={`rounded-full h-14 w-14 ${
+          moodDetectorActive 
+            ? 'bg-healthGreen-500 hover:bg-healthGreen-600 dark:bg-healthGreen-600 dark:hover:bg-healthGreen-700' 
+            : 'bg-healthOrange-500 hover:bg-healthOrange-600 dark:bg-healthOrange-600 dark:hover:bg-healthOrange-700'
+        } shadow-lg flex items-center justify-center`}
+        aria-label={moodDetectorActive ? "Disable Mood Detection" : "Enable Mood Detection"}
+      >
+        {moodDetectorActive ? (
+          <Bot className="h-6 w-6 text-white" />
+        ) : (
+          <Bot className="h-6 w-6 text-white" />
+        )}
+      </Button>
+      
+      {moodDetectorActive && (
+        <div className="mr-16 mb-2">
+          <MoodDetector onMoodDetected={handleMoodDetected} active={moodDetectorActive} />
+        </div>
+      )}
+      
+      {/* AI Chat Button & Dialog */}
       {isOpen ? (
         <Card className="w-80 md:w-96 h-[500px] shadow-card border border-healthBlue-300 dark:border-healthBlue-700 overflow-hidden flex flex-col animate-fade-in rounded-2xl">
           <div className="flex items-center justify-between bg-healthBlue-500 dark:bg-healthBlue-600 text-white p-3">
@@ -53,9 +83,6 @@ const FloatingChatBot: React.FC = () => {
           </div>
           <div className="flex-grow overflow-hidden">
             <AiChat isFloating={true} />
-          </div>
-          <div className="p-2 border-t">
-            <MoodDetector onMoodDetected={handleMoodDetected} active={isOpen} />
           </div>
         </Card>
       ) : (
