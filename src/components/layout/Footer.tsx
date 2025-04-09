@@ -1,20 +1,17 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Twitter, Facebook, Instagram, Mail, Phone } from 'lucide-react';
-
 const Footer: React.FC = () => {
-  return (
-    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 pt-12 pb-8">
+  return <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 pt-12 pb-8">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-r from-healthBlue-500 to-healthBlue-600 flex items-center justify-center text-white shadow-sm">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 4H8C7.44772 4 7 4.44772 7 5V19C7 19.5523 7.44772 20 8 20H16C16.5523 20 17 19.5523 17 19V5C17 4.44772 16.5523 4 16 4Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M12 10V14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M10 12H14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 4H8C7.44772 4 7 4.44772 7 5V19C7 19.5523 7.44772 20 8 20H16C16.5523 20 17 19.5523 17 19V5C17 4.44772 16.5523 4 16 4Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 10V14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M10 12H14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <span className="font-bold text-xl text-healthBlue-500 dark:text-healthBlue-400 font-poppins">HealthStack</span>
@@ -95,11 +92,11 @@ const Footer: React.FC = () => {
             <ul className="space-y-2.5">
               <li className="flex items-start">
                 <Mail className="h-5 w-5 mr-2 text-healthBlue-500 dark:text-healthBlue-400 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">contact@healthstack.com</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">lingrajbhiry@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <Phone className="h-5 w-5 mr-2 text-healthBlue-500 dark:text-healthBlue-400 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">+1 (555) 123-4567</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">+918431632044</span>
               </li>
               <li>
                 <Link to="/privacy" className="text-gray-600 dark:text-gray-300 hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors text-sm">
@@ -124,8 +121,6 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
