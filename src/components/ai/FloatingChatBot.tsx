@@ -4,7 +4,6 @@ import { Bot, X, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AiChat from './AiChat';
-import { ENV } from '@/lib/env';
 import MoodDetector, { Mood } from '../mood/MoodDetector';
 import QuoteDisplay from '../mood/QuoteDisplay';
 
@@ -13,8 +12,11 @@ const FloatingChatBot: React.FC = () => {
   const [detectedMood, setDetectedMood] = useState<Mood>(null);
   const [showQuote, setShowQuote] = useState(false);
 
-  // If AI features are disabled via environment variable, don't render anything
-  if (!ENV.ENABLE_AI_FEATURES) {
+  // AI features are always enabled by default
+  const enableAiFeatures = true;
+
+  // If AI features are disabled, don't render anything
+  if (!enableAiFeatures) {
     return null;
   }
 
