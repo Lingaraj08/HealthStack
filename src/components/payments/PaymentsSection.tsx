@@ -40,7 +40,7 @@ const PaymentsSection: React.FC = () => {
           </p>
           <div className="space-y-2">
             <UpiPayment 
-              merchantUpiId="healthstack@upi" 
+              merchantUpiId="8431632044-2@ybl" 
               merchantName="HealthStack"
               onPaymentSuccess={handlePaymentSuccess}
               onPaymentFailure={handlePaymentFailure}
