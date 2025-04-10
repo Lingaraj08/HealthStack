@@ -8,7 +8,7 @@ import DoctorsSection from '@/components/dashboard/DoctorsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, User, FileSearch, IndianRupee } from 'lucide-react';
+import { FileText, Calendar, User, FileSearch, IndianRupee, Layers } from 'lucide-react';
 import AiChat from '@/components/ai/AiChat';
 import { Button } from '@/components/ui/button';
 import PaymentsSection from '@/components/payments/PaymentsSection';
@@ -49,7 +49,26 @@ const Index: React.FC = () => {
                       <p className="text-sm text-gray-600">Add your medical history and preferences for personalized care.</p>
                     </div>
                   </div>
+                  
+                  {/* New Demo section */}
+                  <div className="bg-healthOrange-50 p-4 rounded-lg border border-healthOrange-100 mt-4">
+                    <h4 className="font-medium text-healthOrange-700 mb-1 flex items-center">
+                      <Layers className="h-4 w-4 mr-1" />
+                      India Stack Integration Testing
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Test ABHA Health ID, UPI, DigiLocker, eSign, and other India Stack features.
+                    </p>
+                    <Button 
+                      variant="healthAccent" 
+                      size="sm"
+                      onClick={() => navigate('/india-stack-test')}
+                    >
+                      Open Test Dashboard
+                    </Button>
+                  </div>
                 </Card>
+                
                 <Card className="p-6 space-y-4 flex flex-col">
                   <h3 className="font-semibold text-xl text-gray-800">Quick Access</h3>
                   <div className="flex-1 space-y-3">
@@ -77,6 +96,12 @@ const Index: React.FC = () => {
                     >
                       <p className="font-medium">View Medical Records</p>
                     </div>
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors bg-healthOrange-50"
+                      onClick={() => navigate('/india-stack-test')}
+                    >
+                      <p className="font-medium">India Stack Testing</p>
+                    </div>
                   </div>
                 </Card>
               </div>
@@ -98,7 +123,7 @@ const Index: React.FC = () => {
                     <Button 
                       variant="outline"
                       className="border-healthBlue-300 text-healthBlue-600"
-                      onClick={() => {}}
+                      onClick={() => navigate('/india-stack-test')}
                     >
                       Connect Health ID
                     </Button>

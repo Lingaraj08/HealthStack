@@ -16,6 +16,7 @@ import Appointments from "./pages/Appointments";
 import AiSymptomChecker from "./pages/AiSymptomChecker";
 import Medications from "./pages/Medications";
 import SosContacts from "./pages/SosContacts";
+import IndiaStackTest from "./pages/IndiaStackTest";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 
@@ -74,6 +75,11 @@ const App = () => {
               <Route path="/sos-contacts" element={
                 <PrivateRoute>
                   <SosContacts />
+                </PrivateRoute>
+              } />
+              <Route path="/india-stack-test" element={
+                <PrivateRoute>
+                  <IndiaStackTest />
                 </PrivateRoute>
               } />
               <Route path="/auth" element={<Auth />} />
