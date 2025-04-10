@@ -24,6 +24,7 @@ import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Partners from "./pages/Partners";
+import AuthCallback from "./components/auth/AuthCallback";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -93,6 +94,7 @@ const App = () => {
               <Route path="/contact" element={<Contact />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
