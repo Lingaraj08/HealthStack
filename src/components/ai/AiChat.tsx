@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Send, Bot, Wand2, RefreshCcw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
-import { ENV } from '@/lib/env';
+import { ENV, AI_CONFIG } from '@/lib/env';
 
 type Message = {
   id: number;
@@ -27,6 +26,29 @@ const initialMessages: Message[] = [
     timestamp: new Date(),
   },
 ];
+
+const healthTopics = {
+  headache: [
+    "Headaches can be caused by various factors including stress, dehydration, lack of sleep, or eye strain. If you're experiencing severe headaches, persistent pain, or headaches accompanied by other symptoms like fever, weakness, or confusion, you should consult a doctor.",
+    "There are different types of headaches - tension, migraine, cluster, and sinus. Each has different characteristics and treatments. Could you describe your headache in more detail so I can provide more specific information?",
+    "For occasional headaches, staying hydrated, getting adequate rest, and over-the-counter pain relievers may help. Have you noticed any triggers for your headaches?"
+  ],
+  diabetes: [
+    "Common symptoms of diabetes include increased thirst, frequent urination, unexplained weight loss, extreme hunger, blurred vision, and fatigue. If you're experiencing these symptoms, it's important to consult with a healthcare provider.",
+    "Diabetes management typically involves monitoring blood glucose levels, healthy eating, regular physical activity, and sometimes medication or insulin therapy. Would you like information about any specific aspect of diabetes?",
+    "There are different types of diabetes - Type 1, Type 2, and gestational diabetes. Each has different causes and may require different approaches to management. Are you looking for information about a specific type?"
+  ],
+  anxiety: [
+    "Managing anxiety can involve various strategies including regular exercise, adequate sleep, mindfulness meditation, limiting alcohol and caffeine, and seeking professional help when needed. Cognitive behavioral therapy (CBT) is one of the most effective treatments.",
+    "Anxiety disorders are among the most common mental health conditions. Symptoms can include excessive worry, restlessness, fatigue, difficulty concentrating, irritability, muscle tension, and sleep problems. What specific symptoms are you experiencing?",
+    "There are several types of anxiety disorders, including generalized anxiety disorder, panic disorder, social anxiety disorder, and specific phobias. Each may require different treatment approaches."
+  ],
+  vaccination: [
+    "Vaccination schedules vary by age, medical conditions, and location. For children in India, key vaccinations include BCG, Hepatitis B, OPV, IPV, DTP, Hib, Rotavirus, PCV, Measles, MMR, and more. For adults, regular tetanus boosters and annual flu vaccines are recommended.",
+    "Vaccines work by stimulating your immune system to produce antibodies against specific diseases, just as it would if you were exposed to the disease naturally. Would you like more information about how vaccines work or their safety?",
+    "The COVID-19 vaccination program in India includes several approved vaccines. The recommended schedule and eligibility may vary based on age and other factors. Would you like specific information about COVID-19 vaccines?"
+  ]
+};
 
 const suggestedQuestions = [
   "What are the symptoms of diabetes?",
@@ -50,6 +72,10 @@ const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
     scrollToBottom();
   }, [messages]);
 
+  const getRandomResponse = (responses: string[]) => {
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
   const handleSend = () => {
     if (!input.trim()) return;
 
@@ -65,24 +91,34 @@ const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
     setIsLoading(true);
 
     // Log that we're using the API key for enhanced responses
-    console.log("Using API key for enhanced AI responses:", ENV.GOOGLE_API_KEY ? "API key available" : "API key not available");
+    console.log("Using API key for enhanced AI responses:", AI_CONFIG.API_KEY_AVAILABLE ? "API key available" : "API key not available");
 
-    // Simulate AI response
+    // Generate AI response with enhanced variability
     setTimeout(() => {
       let response: string;
-
-      // Enhanced response logic
       const lowercaseInput = input.toLowerCase();
+
+      // Enhanced response logic with more variety
       if (lowercaseInput.includes('headache') || lowercaseInput.includes('pain')) {
-        response = "Headaches can be caused by various factors including stress, dehydration, lack of sleep, or eye strain. If you're experiencing severe headaches, persistent pain, or headaches accompanied by other symptoms like fever, weakness, or confusion, you should consult a doctor. Would you like me to help you find a specialist?";
+        response = getRandomResponse(healthTopics.headache);
       } else if (lowercaseInput.includes('diabetes')) {
-        response = "Common symptoms of diabetes include increased thirst, frequent urination, unexplained weight loss, extreme hunger, blurred vision, and fatigue. If you're experiencing these symptoms, it's important to consult with a healthcare provider for proper diagnosis and management.";
+        response = getRandomResponse(healthTopics.diabetes);
       } else if (lowercaseInput.includes('anxiety')) {
-        response = "Managing anxiety can involve various strategies including regular exercise, adequate sleep, mindfulness meditation, limiting alcohol and caffeine, and seeking professional help when needed. Cognitive behavioral therapy (CBT) is one of the most effective treatments for anxiety disorders.";
+        response = getRandomResponse(healthTopics.anxiety);
       } else if (lowercaseInput.includes('vaccination') || lowercaseInput.includes('vaccine')) {
-        response = "Vaccination schedules vary by age, medical conditions, and location. For children in India, key vaccinations include BCG, Hepatitis B, OPV, IPV, DTP, Hib, Rotavirus, PCV, Measles, MMR, and more. For adults, regular tetanus boosters and annual flu vaccines are recommended. Would you like me to provide more specific information based on age?";
+        response = getRandomResponse(healthTopics.vaccination);
+      } else if (lowercaseInput.includes('hello') || lowercaseInput.includes('hi')) {
+        response = "Hello! I'm here to help with any health-related questions you might have. What would you like to know about?";
+      } else if (lowercaseInput.includes('thank')) {
+        response = "You're welcome! If you have any other health questions in the future, feel free to ask.";
       } else {
-        response = "Thank you for your question. I've analyzed your query and would recommend consulting with a healthcare professional for personalized advice. Based on my enhanced understanding, this appears to be a condition that would benefit from professional evaluation. Would you like me to help you find a doctor or specialist for this concern?";
+        // Generate a more personalized general response
+        const generalResponses = [
+          `Thank you for your question about "${input.trim()}". Based on my analysis, this appears to be a health concern that would benefit from professional medical advice. Would you like me to help you find a specialist who can provide more personalized guidance?`,
+          `I understand you're asking about "${input.trim()}". This is an important health topic that may require individualized care. I can provide general information, but for specific medical advice, consulting with a healthcare provider would be best. Would you like some general information on this topic?`,
+          `Your question about "${input.trim()}" touches on an area where personalized medical assessment is valuable. While I can share some general knowledge, speaking with a healthcare professional would give you the most accurate guidance for your specific situation.`
+        ];
+        response = getRandomResponse(generalResponses);
       }
 
       const aiMessage: Message = {

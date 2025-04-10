@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import AiChat from './AiChat';
 import MoodDetector, { Mood } from '../mood/MoodDetector';
 import QuoteDisplay from '../mood/QuoteDisplay';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ENV, AI_CONFIG } from '@/lib/env';
 
 const FloatingChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,8 +14,8 @@ const FloatingChatBot: React.FC = () => {
   const [showQuote, setShowQuote] = useState(false);
   const [moodDetectorActive, setMoodDetectorActive] = useState(false);
 
-  // AI features are always enabled by default
-  const enableAiFeatures = true;
+  // AI features are enabled based on environment configuration
+  const enableAiFeatures = ENV.ENABLE_AI_FEATURES;
 
   // If AI features are disabled, don't render anything
   if (!enableAiFeatures) {
