@@ -19,6 +19,11 @@ import SosContacts from "./pages/SosContacts";
 import IndiaStackTest from "./pages/IndiaStackTest";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Partners from "./pages/Partners";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -82,6 +87,11 @@ const App = () => {
                   <IndiaStackTest />
                 </PrivateRoute>
               } />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/partners" element={<Partners />} />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
