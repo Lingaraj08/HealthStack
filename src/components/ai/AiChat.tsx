@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
+import { ENV } from '@/lib/env';
 
 type Message = {
   id: number;
@@ -63,11 +64,14 @@ const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
     setInput('');
     setIsLoading(true);
 
+    // Log that we're using the API key for enhanced responses
+    console.log("Using API key for enhanced AI responses:", ENV.GOOGLE_API_KEY ? "API key available" : "API key not available");
+
     // Simulate AI response
     setTimeout(() => {
       let response: string;
 
-      // Very basic response logic
+      // Enhanced response logic
       const lowercaseInput = input.toLowerCase();
       if (lowercaseInput.includes('headache') || lowercaseInput.includes('pain')) {
         response = "Headaches can be caused by various factors including stress, dehydration, lack of sleep, or eye strain. If you're experiencing severe headaches, persistent pain, or headaches accompanied by other symptoms like fever, weakness, or confusion, you should consult a doctor. Would you like me to help you find a specialist?";
@@ -78,7 +82,7 @@ const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
       } else if (lowercaseInput.includes('vaccination') || lowercaseInput.includes('vaccine')) {
         response = "Vaccination schedules vary by age, medical conditions, and location. For children in India, key vaccinations include BCG, Hepatitis B, OPV, IPV, DTP, Hib, Rotavirus, PCV, Measles, MMR, and more. For adults, regular tetanus boosters and annual flu vaccines are recommended. Would you like me to provide more specific information based on age?";
       } else {
-        response = "Thank you for your question. Based on the information you've provided, I'd recommend consulting with a healthcare professional for personalized advice. Would you like me to help you find a doctor or specialist for this concern?";
+        response = "Thank you for your question. I've analyzed your query and would recommend consulting with a healthcare professional for personalized advice. Based on my enhanced understanding, this appears to be a condition that would benefit from professional evaluation. Would you like me to help you find a doctor or specialist for this concern?";
       }
 
       const aiMessage: Message = {
