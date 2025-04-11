@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -150,7 +151,7 @@ const ChatConsultation = () => {
       
       const { error } = await supabase
         .from('consultation_messages')
-        .insert(messageData as any);
+        .insert(messageData);
       
       if (error) throw error;
       
