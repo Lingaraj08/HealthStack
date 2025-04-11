@@ -8,8 +8,9 @@ export const ENV = {
   SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
   SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   ENABLE_AI_FEATURES: true,
-  GOOGLE_API_KEY: import.meta.env.VITE_GOOGLE_API_KEY || 'AIzaSyDxlNEzzRycm3rCDNtQEl2zFuiA9U47MrI',
+  GOOGLE_API_KEY: 'AIzaSyDxlNEzzRycm3rCDNtQEl2zFuiA9U47MrI',
   GOOGLE_CLIENT_ID: '578857887844-k6drs17ou5kagepbao9l391ms7t03rni.apps.googleusercontent.com',
+  UPI_ID: '8431632044-2@ybl'
 };
 
 // AI response configuration

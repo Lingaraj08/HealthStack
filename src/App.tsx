@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import PatientAuth from "./pages/PatientAuth";
+import DoctorAuth from "./pages/DoctorAuth";
 import Profile from "./pages/Profile";
 import Doctors from "./pages/Doctors";
 import DoctorDetail from "./pages/DoctorDetail";
@@ -17,6 +19,8 @@ import AiSymptomChecker from "./pages/AiSymptomChecker";
 import Medications from "./pages/Medications";
 import SosContacts from "./pages/SosContacts";
 import IndiaStackTest from "./pages/IndiaStackTest";
+import HealthSchemes from "./pages/HealthSchemes";
+import DoctorDashboard from "./pages/DoctorDashboard";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import Terms from "./pages/Terms";
@@ -25,6 +29,10 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Partners from "./pages/Partners";
 import AuthCallback from "./components/auth/AuthCallback";
+import VideoConsultation from "./components/consultation/VideoConsultation";
+import ChatConsultation from "./components/consultation/ChatConsultation";
+import SosButton from "./components/sos/SosButton";
+import MoodDetectionFeature from "./components/mood/MoodDetectionFeature";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -38,26 +46,14 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={
-                <PrivateRoute>
-                  <Index />
-                </PrivateRoute>
-              } />
+              <Route path="/" element={<Index />} />
               <Route path="/profile" element={
                 <PrivateRoute>
                   <Profile />
                 </PrivateRoute>
               } />
-              <Route path="/doctors" element={
-                <PrivateRoute>
-                  <Doctors />
-                </PrivateRoute>
-              } />
-              <Route path="/doctors/:doctorId" element={
-                <PrivateRoute>
-                  <DoctorDetail />
-                </PrivateRoute>
-              } />
+              <Route path="/doctors" element={<Doctors />} />
+              <Route path="/doctors/:doctorId" element={<DoctorDetail />} />
               <Route path="/medical-records" element={
                 <PrivateRoute>
                   <MedicalRecords />
@@ -88,16 +84,36 @@ const App = () => {
                   <IndiaStackTest />
                 </PrivateRoute>
               } />
+              <Route path="/health-schemes" element={<HealthSchemes />} />
+              <Route path="/doctor-dashboard" element={
+                <PrivateRoute>
+                  <DoctorDashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/video-consultation/:appointmentId" element={
+                <PrivateRoute>
+                  <VideoConsultation />
+                </PrivateRoute>
+              } />
+              <Route path="/chat-consultation/:appointmentId" element={
+                <PrivateRoute>
+                  <ChatConsultation />
+                </PrivateRoute>
+              } />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/patient-auth" element={<PatientAuth />} />
+              <Route path="/doctor-auth" element={<DoctorAuth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <SosButton />
+            <MoodDetectionFeature />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
