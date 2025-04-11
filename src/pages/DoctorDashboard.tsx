@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, User, Video, MessageSquare, Stethoscope, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, Video, MessageSquare, Stethoscope, CheckCircle2, XCircle, Loader2, IndianRupee } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import PaymentStatus from '@/components/payments/PaymentStatus';
 
 interface Patient {
   id: string;
@@ -26,6 +28,8 @@ interface Appointment {
   appointment_time: string;
   status: string;
   notes: string;
+  payment_status: string;
+  payment_amount: number;
   patient: Patient;
 }
 
@@ -35,24 +39,35 @@ const DoctorDashboard = () => {
   const { user, isDoctor } = useAuth();
   const [availability, setAvailability] = useState(true);
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && !isDoctor) {
       navigate('/');
     }
   }, [user, isDoctor, navigate]);
 
-  const { data: appointments, isLoading } = useQuery({
-    queryKey: ['doctor-appointments', user?.id],
+  const { data: doctorInfo } = useQuery({
+    queryKey: ['doctor-info', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
       
-      const { data: doctorData, error: doctorError } = await supabase
+      const { data, error } = await supabase
         .from('doctors')
-        .select('id')
+        .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (doctorError) throw doctorError;
+      if (error) throw error;
+      
+      setAvailability(data.available_for_consultation || false);
+      return data;
+    },
+    enabled: !!user && isDoctor
+  });
+
+  const { data: appointments, isLoading } = useQuery({
+    queryKey: ['doctor-appointments', user?.id],
+    queryFn: async () => {
+      if (!user || !doctorInfo) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('appointments')
@@ -62,37 +77,31 @@ const DoctorDashboard = () => {
           appointment_time,
           status,
           notes,
+          payment_status,
+          payment_amount,
           patient:profiles!patient_id (
             id,
             first_name,
             last_name
           )
         `)
-        .eq('doctor_id', doctorData.id)
+        .eq('doctor_id', doctorInfo.id)
         .order('appointment_time', { ascending: true });
       
       if (error) throw error;
       return data as unknown as Appointment[];
     },
-    enabled: !!user && isDoctor
+    enabled: !!user && isDoctor && !!doctorInfo
   });
 
   const updateAvailabilityMutation = useMutation({
     mutationFn: async (available: boolean) => {
-      if (!user) throw new Error('Not authenticated');
-      
-      const { data: doctorData, error: doctorError } = await supabase
-        .from('doctors')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (doctorError) throw doctorError;
+      if (!user || !doctorInfo) throw new Error('Not authenticated');
       
       const { error } = await supabase
         .from('doctors')
-        .update({ available_for_consultation: available } as any)
-        .eq('id', doctorData.id);
+        .update({ available_for_consultation: available })
+        .eq('id', doctorInfo.id);
       
       if (error) throw error;
       return available;
@@ -110,7 +119,7 @@ const DoctorDashboard = () => {
     mutationFn: async ({ appointmentId, status }: { appointmentId: string, status: string }) => {
       const { error } = await supabase
         .from('appointments')
-        .update({ status } as any)
+        .update({ status })
         .eq('id', appointmentId);
       
       if (error) throw error;
@@ -125,11 +134,11 @@ const DoctorDashboard = () => {
     }
   });
 
-  const startConsultation = (appointmentId: string, patientName: string) => {
+  const startConsultation = (appointmentId: string) => {
     navigate(`/video-consultation/${appointmentId}`);
   };
   
-  const startChatConsultation = (appointmentId: string, patientName: string) => {
+  const startChatConsultation = (appointmentId: string) => {
     navigate(`/chat-consultation/${appointmentId}`);
   };
   
@@ -323,20 +332,27 @@ const DoctorDashboard = () => {
                           <User className="h-4 w-4 text-gray-500 mr-2" />
                           <span>Patient ID: {appointment.patient_id.substring(0, 8)}</span>
                         </div>
+                        <div className="flex items-center">
+                          <IndianRupee className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="mr-2">Payment Status:</span>
+                          <PaymentStatus status={appointment.payment_status} amount={appointment.payment_amount} />
+                        </div>
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
                       <Button 
                         variant="outline" 
                         className="border-healthBlue-200 text-healthBlue-600"
-                        onClick={() => startChatConsultation(appointment.id, `${appointment.patient.first_name} ${appointment.patient.last_name}`)}
+                        onClick={() => startChatConsultation(appointment.id)}
+                        disabled={appointment.payment_status !== 'completed'}
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Text Chat
                       </Button>
                       <Button 
                         className="bg-healthBlue-600 hover:bg-healthBlue-700"
-                        onClick={() => startConsultation(appointment.id, `${appointment.patient.first_name} ${appointment.patient.last_name}`)}
+                        onClick={() => startConsultation(appointment.id)}
+                        disabled={appointment.payment_status !== 'completed'}
                       >
                         <Video className="h-4 w-4 mr-1" />
                         Video Call

@@ -10,7 +10,8 @@ export const ENV = {
   ENABLE_AI_FEATURES: true,
   GOOGLE_API_KEY: 'AIzaSyDxlNEzzRycm3rCDNtQEl2zFuiA9U47MrI',
   GOOGLE_CLIENT_ID: '578857887844-k6drs17ou5kagepbao9l391ms7t03rni.apps.googleusercontent.com',
-  UPI_ID: '8431632044-2@ybl'
+  UPI_ID: '8431632044-2@ybl',
+  GEMINI_API_KEY: 'YOUR_GEMINI_API_KEY' // Add this for AI chatbot
 };
 
 // AI response configuration

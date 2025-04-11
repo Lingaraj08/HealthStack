@@ -17,6 +17,8 @@ export type Database = {
           id: string
           notes: string | null
           patient_id: string
+          payment_amount: number | null
+          payment_status: string | null
           status: string | null
         }
         Insert: {
@@ -26,6 +28,8 @@ export type Database = {
           id?: string
           notes?: string | null
           patient_id: string
+          payment_amount?: number | null
+          payment_status?: string | null
           status?: string | null
         }
         Update: {
@@ -35,6 +39,8 @@ export type Database = {
           id?: string
           notes?: string | null
           patient_id?: string
+          payment_amount?: number | null
+          payment_status?: string | null
           status?: string | null
         }
         Relationships: [
@@ -233,6 +239,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string | null
+          id: string
+          payment_method: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

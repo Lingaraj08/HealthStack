@@ -8,12 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfToday, isBefore } from 'date-fns';
-import { CalendarIcon, Clock, MapPin, User, Calendar as CalendarIcon2, Loader2, Plus } from 'lucide-react';
+import { CalendarIcon, Clock, MapPin, User, Calendar as CalendarIcon2, Loader2, Plus, Video, MessageSquare, IndianRupee } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import AppointmentPayment from '@/components/payments/AppointmentPayment';
+import PaymentStatus from '@/components/payments/PaymentStatus';
 
 interface Doctor {
   id: string;
@@ -21,6 +24,7 @@ interface Doctor {
   specialization: string;
   avatar_url: string;
   hospital: string;
+  available_for_consultation: boolean;
 }
 
 interface Appointment {
@@ -30,6 +34,8 @@ interface Appointment {
   appointment_time: string;
   status: string;
   notes: string;
+  payment_status: string;
+  payment_amount: number;
   doctor: Doctor;
 }
 
@@ -40,25 +46,28 @@ const timeSlots = [
   '16:00', '16:30', '17:00', '17:30'
 ];
 
-// Appointment status badges
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'confirmed':
-      return <Badge variant="outline" className="bg-healthGreen-50 text-healthGreen-700 border-healthGreen-200">Confirmed</Badge>;
-    case 'pending':
-      return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
-    case 'cancelled':
-      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelled</Badge>;
-    case 'completed':
-      return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Completed</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
+// Consultation fee based on specialization (demo data)
+const getConsultationFee = (specialization: string): number => {
+  const fees: {[key: string]: number} = {
+    'Cardiologist': 1000,
+    'Dermatologist': 800,
+    'Neurologist': 1200,
+    'Pediatrician': 600,
+    'Orthopedic': 900,
+    'Gynecologist': 800,
+    'General Physician': 500,
+    'Psychiatrist': 1000,
+    'Ophthalmologist': 700,
+    'Dentist': 600,
+    'ENT Specialist': 700
+  };
+  
+  return fees[specialization] || 500;
 };
 
 const Appointments = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -66,14 +75,20 @@ const Appointments = () => {
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedDoctor, setSelectedDoctor] = useState<string | undefined>();
   const [appointmentNotes, setAppointmentNotes] = useState('');
+  const [selectedDoctorData, setSelectedDoctorData] = useState<Doctor | null>(null);
+  
+  // Payment related states
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [appointmentForPayment, setAppointmentForPayment] = useState<Appointment | null>(null);
   
   // Get doctors for appointment booking
-  const { data: doctors } = useQuery({
-    queryKey: ['doctors'],
+  const { data: doctors, isLoading: isLoadingDoctors } = useQuery({
+    queryKey: ['available-doctors'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('doctors')
-        .select('id, full_name, specialization')
+        .select('id, full_name, specialization, available_for_consultation')
+        .eq('available_for_consultation', true)
         .order('full_name');
       
       if (error) throw error;
@@ -93,7 +108,7 @@ const Appointments = () => {
         .select(`
           *,
           doctor:doctor_id (
-            id, full_name, specialization, avatar_url, hospital
+            id, full_name, specialization, avatar_url, hospital, available_for_consultation
           )
         `)
         .eq('patient_id', user.id)
@@ -121,6 +136,17 @@ const Appointments = () => {
         parseInt(selectedTime.split(':')[1])
       ).toISOString();
       
+      // Get the doctor's details to calculate fee
+      const { data: doctorData, error: doctorError } = await supabase
+        .from('doctors')
+        .select('specialization')
+        .eq('id', selectedDoctor)
+        .single();
+      
+      if (doctorError) throw doctorError;
+      
+      const consultationFee = getConsultationFee(doctorData.specialization);
+      
       const { data, error } = await supabase
         .from('appointments')
         .insert({
@@ -128,7 +154,9 @@ const Appointments = () => {
           patient_id: user.id,
           appointment_time: appointmentDateTime,
           status: 'pending',
-          notes: appointmentNotes
+          notes: appointmentNotes,
+          payment_status: 'pending',
+          payment_amount: consultationFee
         })
         .select()
         .single();
@@ -138,19 +166,12 @@ const Appointments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments', user?.id] });
-      toast({
-        title: "Appointment Booked",
-        description: "Your appointment has been scheduled successfully"
-      });
+      toast.success('Appointment request sent successfully');
       setIsBookingOpen(false);
       resetBookingForm();
     },
     onError: (error) => {
-      toast({
-        title: "Booking Failed",
-        description: "Failed to book appointment: " + (error as Error).message,
-        variant: "destructive"
-      });
+      toast.error('Failed to book appointment: ' + (error as Error).message);
     }
   });
   
@@ -168,19 +189,21 @@ const Appointments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments', user?.id] });
-      toast({
-        title: "Appointment Cancelled",
-        description: "Your appointment has been cancelled successfully"
-      });
+      toast.success('Appointment cancelled successfully');
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to cancel appointment: " + (error as Error).message,
-        variant: "destructive"
-      });
+      toast.error('Failed to cancel appointment: ' + (error as Error).message);
     }
   });
+
+  useEffect(() => {
+    if (selectedDoctor) {
+      const doctor = doctors?.find(d => d.id === selectedDoctor);
+      setSelectedDoctorData(doctor || null);
+    } else {
+      setSelectedDoctorData(null);
+    }
+  }, [selectedDoctor, doctors]);
   
   const resetBookingForm = () => {
     setSelectedDate(addDays(new Date(), 1));
@@ -191,29 +214,17 @@ const Appointments = () => {
   
   const handleBookAppointment = () => {
     if (!selectedDoctor) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a doctor",
-        variant: "destructive"
-      });
+      toast.error('Please select a doctor');
       return;
     }
     
     if (!selectedDate) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a date",
-        variant: "destructive"
-      });
+      toast.error('Please select a date');
       return;
     }
     
     if (!selectedTime) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a time slot",
-        variant: "destructive"
-      });
+      toast.error('Please select a time slot');
       return;
     }
     
@@ -222,6 +233,25 @@ const Appointments = () => {
   
   const handleCancelAppointment = (appointmentId: string) => {
     cancelAppointmentMutation.mutate(appointmentId);
+  };
+
+  const handlePayment = (appointment: Appointment) => {
+    setAppointmentForPayment(appointment);
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePaymentComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['appointments', user?.id] });
+    setPaymentDialogOpen(false);
+    toast.success('You can now start your consultation');
+  };
+
+  const startConsultation = (appointmentId: string) => {
+    navigate(`/video-consultation/${appointmentId}`);
+  };
+  
+  const startChatConsultation = (appointmentId: string) => {
+    navigate(`/chat-consultation/${appointmentId}`);
   };
   
   // Filter appointments by status
@@ -251,7 +281,7 @@ const Appointments = () => {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button onClick={() => window.location.href = '/auth'}>
+              <Button onClick={() => navigate('/patient-auth')}>
                 Sign In
               </Button>
             </CardFooter>
@@ -309,13 +339,28 @@ const Appointments = () => {
                         <SelectValue placeholder="Select a doctor" />
                       </SelectTrigger>
                       <SelectContent>
-                        {doctors?.map((doctor) => (
-                          <SelectItem key={doctor.id} value={doctor.id}>
-                            {doctor.full_name} - {doctor.specialization}
-                          </SelectItem>
-                        ))}
+                        {isLoadingDoctors ? (
+                          <div className="flex items-center justify-center p-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-healthBlue-600 mr-2" />
+                            <span>Loading doctors...</span>
+                          </div>
+                        ) : doctors && doctors.length > 0 ? (
+                          doctors.map((doctor) => (
+                            <SelectItem key={doctor.id} value={doctor.id}>
+                              {doctor.full_name} - {doctor.specialization}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-2 text-sm text-gray-500">No doctors available currently</div>
+                        )}
                       </SelectContent>
                     </Select>
+                    
+                    {selectedDoctorData && (
+                      <div className="mt-2 text-xs text-healthBlue-600">
+                        Consultation Fee: ₹{getConsultationFee(selectedDoctorData.specialization)}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -390,6 +435,22 @@ const Appointments = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          
+          {/* Payment Dialog */}
+          <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              {appointmentForPayment && (
+                <AppointmentPayment 
+                  appointmentId={appointmentForPayment.id} 
+                  doctorName={appointmentForPayment.doctor.full_name}
+                  appointmentTime={appointmentForPayment.appointment_time}
+                  amount={appointmentForPayment.payment_amount}
+                  onSuccess={handlePaymentComplete}
+                  onCancel={() => setPaymentDialogOpen(false)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
         
         <Tabs defaultValue="upcoming">
@@ -402,11 +463,23 @@ const Appointments = () => {
             {upcomingAppointments.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {upcomingAppointments.map((appointment) => (
-                  <Card key={appointment.id}>
+                  <Card key={appointment.id} className={`
+                    ${appointment.status === 'confirmed' ? 'border-l-4 border-l-healthGreen-500' : 
+                      appointment.status === 'pending' ? 'border-l-4 border-l-healthOrange-500' : ''}
+                  `}>
                     <CardHeader className="pb-3">
                       <div className="flex justify-between">
                         <CardTitle>{appointment.doctor.full_name}</CardTitle>
-                        {getStatusBadge(appointment.status)}
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            appointment.status === 'confirmed' 
+                            ? "bg-healthGreen-50 text-healthGreen-700 border-healthGreen-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                          }
+                        >
+                          {appointment.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                        </Badge>
                       </div>
                       <CardDescription>{appointment.doctor.specialization}</CardDescription>
                     </CardHeader>
@@ -424,6 +497,11 @@ const Appointments = () => {
                           <MapPin className="h-4 w-4 text-gray-500 mr-2" />
                           <span>{appointment.doctor.hospital || 'Hospital information not available'}</span>
                         </div>
+                        <div className="flex items-center mt-1">
+                          <IndianRupee className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="mr-2">Fee: ₹{appointment.payment_amount}</span>
+                          <PaymentStatus status={appointment.payment_status} />
+                        </div>
                         {appointment.notes && (
                           <div className="pt-2">
                             <p className="text-sm text-gray-600 italic">"{appointment.notes}"</p>
@@ -432,16 +510,46 @@ const Appointments = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button 
-                        variant="outline" 
-                        className="text-red-600 border-red-200 hover:bg-red-50" 
-                        onClick={() => handleCancelAppointment(appointment.id)}
-                        disabled={cancelAppointmentMutation.isPending}
-                      >
-                        {cancelAppointmentMutation.isPending && cancelAppointmentMutation.variables === appointment.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : 'Cancel Appointment'}
-                      </Button>
+                      {appointment.status === 'confirmed' ? (
+                        appointment.payment_status === 'completed' ? (
+                          <div className="flex w-full gap-2">
+                            <Button 
+                              variant="outline" 
+                              className="flex-1"
+                              onClick={() => startChatConsultation(appointment.id)}
+                            >
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              Chat
+                            </Button>
+                            <Button 
+                              className="bg-healthBlue-600 hover:bg-healthBlue-700 flex-1"
+                              onClick={() => startConsultation(appointment.id)}
+                            >
+                              <Video className="mr-2 h-4 w-4" />
+                              Video Call
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button 
+                            className="bg-healthGreen-600 hover:bg-healthGreen-700 w-full"
+                            onClick={() => handlePayment(appointment)}
+                          >
+                            <IndianRupee className="mr-2 h-4 w-4" />
+                            Pay ₹{appointment.payment_amount}
+                          </Button>
+                        )
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          className="text-red-600 border-red-200 hover:bg-red-50" 
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          disabled={cancelAppointmentMutation.isPending}
+                        >
+                          {cancelAppointmentMutation.isPending && cancelAppointmentMutation.variables === appointment.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : 'Cancel Request'}
+                        </Button>
+                      )}
                     </CardFooter>
                   </Card>
                 ))}
