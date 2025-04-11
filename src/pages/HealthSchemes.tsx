@@ -1,200 +1,259 @@
 
 import React from 'react';
 import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink, CheckCircle2, Clock, PlusCircle, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield, Heart, BadgeIndianRupee, GraduationCap, Leaf, Tag, Landmark } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthContext';
 
-interface HealthScheme {
-  id: string;
-  name: string;
+interface SchemeProps {
+  title: string;
   description: string;
-  eligibility: string;
+  icon: React.ReactNode;
   url: string;
-  status: 'popular' | 'new' | 'recommended' | '';
-  deadlineSoon?: boolean;
+  eligibility?: string;
+  benefits?: string[];
+  isNew?: boolean;
 }
 
-const healthSchemes: HealthScheme[] = [
-  {
-    id: '1',
-    name: 'Ayushman Bharat Digital Mission (ABHA)',
-    description: 'Create your ABHA ID to access and share your health records digitally.',
-    eligibility: 'All Indian citizens',
-    url: 'https://abha.abdm.gov.in/abha/v3/register',
-    status: 'popular'
-  },
-  {
-    id: '2',
-    name: 'PM Jan Arogya Yojana (PM-JAY)',
-    description: 'Get free access to healthcare services up to ₹5 lakh per family per year.',
-    eligibility: 'Economically disadvantaged families as per SECC data',
-    url: 'https://web.umang.gov.in/landing/department/pradhan-mantri-jan-arogya-yojana.html',
-    status: 'recommended',
-    deadlineSoon: true
-  },
-  {
-    id: '3',
-    name: 'Pradhan Mantri Suraksha Bima Yojana (PMSBY)',
-    description: 'Accident insurance cover of ₹2 lakh at just ₹12 per year.',
-    eligibility: 'All Indian citizens aged 18-70 with a bank account',
-    url: 'https://www.myscheme.gov.in/schemes/pmsby',
-    status: ''
-  },
-  {
-    id: '4',
-    name: 'Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)',
-    description: 'Life insurance cover of ₹2 lakh at just ₹330 per year.',
-    eligibility: 'All Indian citizens aged 18-50 with a bank account',
-    url: 'https://www.myscheme.gov.in/schemes/pmjjby',
-    status: 'new'
-  },
-  {
-    id: '5',
-    name: 'Rashtriya Swasthya Bima Yojana (RSBY)',
-    description: 'Health insurance for BPL families providing coverage up to ₹30,000.',
-    eligibility: 'BPL families',
-    url: 'https://www.nhp.gov.in/rashtriya-swasthya-bima-yojana-rsby_pg',
-    status: ''
-  },
-  {
-    id: '6',
-    name: 'Pradhan Mantri National Dialysis Program',
-    description: 'Free dialysis services to people suffering from kidney diseases.',
-    eligibility: 'All kidney disease patients',
-    url: 'https://nhm.gov.in/index1.php?lang=1&level=2&sublinkid=1104&lid=135',
-    status: ''
-  }
-];
+const SchemeCard: React.FC<SchemeProps> = ({ 
+  title, 
+  description, 
+  icon, 
+  url,
+  eligibility, 
+  benefits,
+  isNew 
+}) => {
+  return (
+    <Card className="h-full flex flex-col">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div className="flex items-center">
+            <div className="mr-3 p-2 bg-healthBlue-50 rounded-lg">
+              {icon}
+            </div>
+            <CardTitle className="text-xl">{title}</CardTitle>
+          </div>
+          {isNew && (
+            <div className="bg-healthOrange-100 text-healthOrange-700 text-xs px-2 py-1 rounded-full">
+              New
+            </div>
+          )}
+        </div>
+        <CardDescription className="text-base">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        {eligibility && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-1">Eligibility:</h4>
+            <p className="text-sm text-gray-600">{eligibility}</p>
+          </div>
+        )}
+        {benefits && benefits.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-1">Benefits:</h4>
+            <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
+              {benefits.map((benefit, idx) => (
+                <li key={idx}>{benefit}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button 
+          className="w-full" 
+          onClick={() => window.open(url, '_blank')}
+        >
+          Apply Now
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
 
 const HealthSchemes = () => {
-  const handleSchemeClick = (url: string) => {
-    window.open(url, '_blank');
-  };
+  const { user } = useAuth();
+  
+  const healthSchemes: SchemeProps[] = [
+    {
+      title: 'Ayushman Bharat Digital Health Mission',
+      description: 'Create your Ayushman Bharat Health Account (ABHA) and manage your health records digitally.',
+      icon: <Shield className="h-6 w-6 text-healthBlue-600" />,
+      url: 'https://abha.abdm.gov.in/abha/v3/register',
+      eligibility: 'All Indian citizens',
+      benefits: [
+        'Create a health ID for accessing digital health services',
+        'Store and access your health records securely',
+        'Share health information with healthcare providers',
+        'Seamless access to healthcare services across the country'
+      ]
+    },
+    {
+      title: 'PM Jan Arogya Yojana',
+      description: 'Pradhan Mantri Jan Arogya Yojana (PM-JAY) provides health coverage up to ₹5 lakh per family per year.',
+      icon: <Heart className="h-6 w-6 text-healthRed-600" />,
+      url: 'https://web.umang.gov.in/landing/department/pradhan-mantri-jan-arogya-yojana.html',
+      eligibility: 'Poor and vulnerable families as per SECC database',
+      benefits: [
+        'Cashless and paperless treatment at empanelled hospitals',
+        'Coverage up to ₹5 lakh per family per year',
+        'Transportation allowance for hospitalization',
+        'Pre and post-hospitalization expenses covered'
+      ]
+    },
+    {
+      title: 'Pradhan Mantri Suraksha Bima Yojana',
+      description: 'An accident insurance scheme with coverage of ₹2 lakh at just ₹12 per year.',
+      icon: <BadgeIndianRupee className="h-6 w-6 text-healthGreen-600" />,
+      url: 'https://www.myscheme.gov.in/schemes/pmsby',
+      eligibility: 'All Indian citizens aged 18-70 years with a bank account',
+      benefits: [
+        'Affordable premium of ₹12 per annum',
+        '₹2 lakh coverage for accidental death or disability',
+        'Auto-debit feature for hassle-free renewal',
+        'One-year cover from June 1 to May 31'
+      ]
+    },
+    {
+      title: 'Pradhan Mantri Jeevan Jyoti Bima Yojana',
+      description: 'Life insurance cover of ₹2 lakh at a premium of just ₹330 per year.',
+      icon: <Landmark className="h-6 w-6 text-healthBlue-600" />,
+      url: 'https://www.myscheme.gov.in/schemes/pmjjby',
+      eligibility: 'All Indian citizens aged 18-50 years with a bank account',
+      benefits: [
+        '₹2 lakh life insurance coverage',
+        'Affordable premium of ₹330 per annum',
+        'Coverage for death due to any reason',
+        'Simple enrollment process through bank account'
+      ]
+    },
+    {
+      title: 'Aam Aadmi Bima Yojana',
+      description: 'Social security scheme for rural landless households providing insurance coverage.',
+      icon: <Shield className="h-6 w-6 text-healthGreen-600" />,
+      url: 'https://www.myscheme.gov.in/schemes/aaby',
+      eligibility: 'Rural landless households, one person per family aged 18-59 years',
+      benefits: [
+        '₹30,000 for natural death',
+        '₹75,000 for accidental death/disability',
+        'Scholarship benefits for children studying in 9th to 12th standard',
+        'Premium subsidized by central and state governments'
+      ],
+      isNew: true
+    },
+    {
+      title: 'Central Government Health Scheme',
+      description: 'Comprehensive healthcare facilities to Central Government employees and pensioners.',
+      icon: <GraduationCap className="h-6 w-6 text-healthBlue-600" />,
+      url: 'https://www.myscheme.gov.in/schemes/cghs',
+      eligibility: 'Central government employees, pensioners and their dependents',
+      benefits: [
+        'Comprehensive medical care facilities',
+        'OPD and hospitalization coverage',
+        'Medical reimbursement for treatments',
+        'Cashless treatment at empanelled hospitals'
+      ]
+    },
+    {
+      title: 'National Pension Scheme',
+      description: 'Voluntary contribution pension scheme aimed at providing retirement income.',
+      icon: <BadgeIndianRupee className="h-6 w-6 text-healthBlue-600" />,
+      url: 'https://www.myscheme.gov.in/schemes/nps',
+      eligibility: 'Indian citizens aged 18-65 years',
+      benefits: [
+        'Flexible investment options',
+        'Tax benefits under Section 80C and 80CCD',
+        'Regular pension after retirement',
+        'Partial withdrawal for specific purposes'
+      ],
+      isNew: true
+    },
+    {
+      title: 'Ayushman Bharat Health Infrastructure Mission',
+      description: 'Developing healthcare infrastructure across primary, secondary, and tertiary care systems.',
+      icon: <Leaf className="h-6 w-6 text-healthGreen-600" />,
+      url: 'https://abdm.gov.in/pm-abhim',
+      eligibility: 'All Indian citizens through public healthcare infrastructure',
+      benefits: [
+        'Strengthened public health infrastructure',
+        'Better disease surveillance systems',
+        'Improved testing capacities',
+        'Enhanced research capabilities'
+      ],
+      isNew: true
+    }
+  ];
+
+  const newSchemes = healthSchemes.filter(scheme => scheme.isNew);
+  const allSchemes = healthSchemes;
 
   return (
     <Layout>
-      <div className="container mx-auto py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-healthBlue-800 mb-2">Government Health Schemes</h1>
-          <p className="text-gray-600">
-            Apply for government healthcare schemes and benefits you may be eligible for
-          </p>
-        </div>
+      <div className="container py-8 max-w-7xl">
+        <h1 className="text-3xl font-bold mb-2">Health Schemes & Programs</h1>
+        <p className="text-gray-600 mb-6">
+          Explore government schemes and programs to support your healthcare needs
+        </p>
         
-        {/* Featured Scheme */}
-        <div className="mb-12">
-          <Card className="bg-gradient-to-r from-healthBlue-50 to-white border-healthBlue-100">
-            <div className="md:grid md:grid-cols-3 gap-6">
-              <CardHeader className="md:col-span-2">
-                <Badge className="mb-2 bg-healthBlue-100 text-healthBlue-800 hover:bg-healthBlue-200">Featured</Badge>
-                <CardTitle className="text-2xl text-healthBlue-800">Ayushman Bharat Digital Mission</CardTitle>
-                <CardDescription className="text-base mt-2">
-                  Create your digital health ID (ABHA) to access and share health records securely 
-                  across healthcare providers. Manage your medical history, prescriptions, and test
-                  results in one place.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 md:pt-0 flex items-center justify-center">
-                <img 
-                  src="https://abdm.gov.in/assets/images/logo.png" 
-                  alt="ABHA Logo" 
-                  className="max-h-40 max-w-full object-contain"
-                />
-              </CardContent>
-            </div>
-            <CardFooter className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-b-lg border-t p-6">
-              <div className="flex items-center text-healthBlue-600 font-medium">
-                <CheckCircle2 className="h-5 w-5 mr-2" />
-                Free for all Indian citizens
-              </div>
-              <Button 
-                className="bg-healthBlue-600 hover:bg-healthBlue-700 w-full sm:w-auto"
-                onClick={() => handleSchemeClick('https://abha.abdm.gov.in/abha/v3/register')}
-              >
-                <span className="flex items-center">
-                  Create ABHA ID
-                  <ExternalLink className="ml-2 h-4 w-4" />
-                </span>
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        {/* All Schemes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {healthSchemes.map((scheme) => (
-            <Card key={scheme.id} className="flex flex-col h-full">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex gap-2 flex-wrap">
-                    {scheme.status === 'popular' && (
-                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
-                        Popular
-                      </Badge>
-                    )}
-                    {scheme.status === 'new' && (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                        New
-                      </Badge>
-                    )}
-                    {scheme.status === 'recommended' && (
-                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
-                        Recommended for you
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {scheme.deadlineSoon && (
-                    <div className="flex items-center text-amber-600 text-xs font-medium">
-                      <Clock className="h-3 w-3 mr-1" />
-                      Deadline soon
-                    </div>
-                  )}
-                </div>
-                <CardTitle className="text-lg">{scheme.name}</CardTitle>
-                <CardDescription className="mt-2">{scheme.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="bg-gray-50 p-3 rounded-md">
-                  <p className="text-sm font-medium text-gray-700">Eligibility:</p>
-                  <p className="text-sm text-gray-600">{scheme.eligibility}</p>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button 
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => handleSchemeClick(scheme.url)}
-                >
-                  <span className="flex items-center">
-                    Apply Now
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </span>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <Tabs defaultValue="all">
+          <TabsList className="mb-8">
+            <TabsTrigger value="all">All Schemes</TabsTrigger>
+            <TabsTrigger value="new">
+              New Schemes
+              <span className="ml-2 bg-healthOrange-100 text-healthOrange-700 text-xs px-2 py-0.5 rounded-full">
+                {newSchemes.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
           
-          {/* Coming Soon Card */}
-          <Card className="flex flex-col h-full border-dashed border-gray-300 bg-gray-50">
-            <CardHeader>
-              <CardTitle className="text-lg text-gray-600">More Schemes Coming Soon</CardTitle>
-              <CardDescription className="mt-2">
-                We're adding more government health benefit programs regularly.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex items-center justify-center">
-              <PlusCircle className="h-12 w-12 text-gray-400" />
-            </CardContent>
-            <CardFooter className="pt-0">
-              <div className="flex items-center w-full justify-center text-sm text-gray-500">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Check back soon for updates
+          <TabsContent value="all">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {allSchemes.map((scheme, index) => (
+                <SchemeCard key={index} {...scheme} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="new">
+            {newSchemes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {newSchemes.map((scheme, index) => (
+                  <SchemeCard key={index} {...scheme} />
+                ))}
               </div>
-            </CardFooter>
-          </Card>
+            ) : (
+              <div className="text-center py-12">
+                <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium mb-2">No new schemes at the moment</h3>
+                <p className="text-gray-600">
+                  Check back later for new government health schemes and programs.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+        
+        <div className="mt-12 bg-gray-50 p-6 rounded-lg border">
+          <h3 className="text-xl font-medium mb-2">Need Help?</h3>
+          <p className="text-gray-600 mb-4">
+            Our team can help you understand these schemes and assist with the application process.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Button variant="outline" className="bg-white">
+              Schedule Consultation
+            </Button>
+            <Button variant="outline" className="bg-white">
+              Eligibility Check
+            </Button>
+            {!user && (
+              <Button onClick={() => window.location.href = '/auth'}>
+                Sign In for Personalized Recommendations
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </Layout>

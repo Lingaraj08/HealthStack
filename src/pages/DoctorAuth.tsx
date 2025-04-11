@@ -375,6 +375,27 @@ const DoctorAuth = () => {
                     <Button type="submit" className="w-full bg-healthGreen-600 hover:bg-healthGreen-700" disabled={loading}>
                       {loading ? <span className="flex items-center">Signing up...</span> : <span className="flex items-center">Create Doctor Account</span>}
                     </Button>
+                    
+                    {ENV.GOOGLE_CLIENT_ID && (
+                      <>
+                        <div className="relative flex py-3 items-center w-full">
+                          <div className="flex-grow border-t border-gray-300"></div>
+                          <span className="flex-shrink mx-4 text-gray-500">or</span>
+                          <div className="flex-grow border-t border-gray-300"></div>
+                        </div>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={handleGoogleSignIn}
+                          disabled={loading}
+                        >
+                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-2" />
+                          Sign up with Google
+                        </Button>
+                      </>
+                    )}
                   </CardFooter>
                 </form>
               </TabsContent>

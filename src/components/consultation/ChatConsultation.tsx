@@ -70,27 +70,10 @@ const ChatConsultation = () => {
         .eq('id', appointmentId)
         .single();
       
-      // Add role-specific filter
-      if (userRole === 'doctor') {
-        // For doctors, check if they are the assigned doctor for this appointment
-        const { data: doctorData, error: doctorError } = await supabase
-          .from('doctors')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (doctorError) throw doctorError;
-        
-        query = query.eq('doctor_id', doctorData.id);
-      } else if (userRole === 'patient') {
-        // For patients, check if they are the patient for this appointment
-        query = query.eq('patient_id', user.id);
-      }
-      
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as AppointmentDetails;
+      return data as unknown as AppointmentDetails;
     },
     enabled: !!user && !!appointmentId
   });

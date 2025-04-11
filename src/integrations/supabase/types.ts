@@ -47,6 +47,41 @@ export type Database = {
           },
         ]
       }
+      consultation_messages: {
+        Row: {
+          appointment_id: string
+          content: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          appointment_id: string
+          content: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          appointment_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_messages_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
           available_for_consultation: boolean | null
@@ -122,6 +157,83 @@ export type Database = {
         }
         Relationships: []
       }
+      medication_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          medication_id: string
+          scheduled_time: string
+          taken: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medication_id: string
+          scheduled_time: string
+          taken?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medication_id?: string
+          scheduled_time?: string
+          taken?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_reminders_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          created_at: string
+          dosage: string
+          end_date: string | null
+          frequency: string
+          id: string
+          name: string
+          quantity_remaining: number | null
+          quantity_total: number | null
+          start_date: string
+          time: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          name: string
+          quantity_remaining?: number | null
+          quantity_total?: number | null
+          start_date: string
+          time?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          name?: string
+          quantity_remaining?: number | null
+          quantity_total?: number | null
+          start_date?: string
+          time?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -132,6 +244,7 @@ export type Database = {
           emergency_contact: string | null
           first_name: string | null
           gender: string | null
+          guardian_phone: string | null
           health_id: string | null
           id: string
           last_name: string | null
@@ -148,6 +261,7 @@ export type Database = {
           emergency_contact?: string | null
           first_name?: string | null
           gender?: string | null
+          guardian_phone?: string | null
           health_id?: string | null
           id: string
           last_name?: string | null
@@ -164,6 +278,7 @@ export type Database = {
           emergency_contact?: string | null
           first_name?: string | null
           gender?: string | null
+          guardian_phone?: string | null
           health_id?: string | null
           id?: string
           last_name?: string | null
