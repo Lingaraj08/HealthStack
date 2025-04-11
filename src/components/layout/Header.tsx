@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import UserProfileDropdown from '@/components/profile/UserProfileDropdown';
 import { useAuth } from '@/components/auth/AuthContext';
-import { Home, FileText, Calendar, User, Stethoscope, LogIn, Bot, Menu, X, Sun, Moon } from 'lucide-react';
+import { Home, FileText, Calendar, User, Stethoscope, LogIn, Bot, Menu, X, Sun, Moon, Shield } from 'lucide-react';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -71,6 +71,10 @@ const Header = () => {
                 <Link to="/medical-records" className={`flex items-center ${isActive('/medical-records') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
                   <FileText className="h-4 w-4 mr-1" /> 
                   Records
+                </Link>
+                <Link to="/health-schemes" className={`flex items-center ${isActive('/health-schemes') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
+                  <Shield className="h-4 w-4 mr-1" /> 
+                  Health Schemes
                 </Link>
                 <Link to="/profile" className={`flex items-center ${isActive('/profile') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
                   <User className="h-4 w-4 mr-1" /> 
@@ -141,6 +145,10 @@ const Header = () => {
             <Link to="/medical-records" className={`flex items-center ${isActive('/medical-records') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
               <FileText className="h-5 w-5 mr-3" /> 
               Records
+            </Link>
+            <Link to="/health-schemes" className={`flex items-center ${isActive('/health-schemes') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
+              <Shield className="h-5 w-5 mr-3" /> 
+              Health Schemes
             </Link>
             <Link to="/profile" className={`flex items-center ${isActive('/profile') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
               <User className="h-5 w-5 mr-3" /> 

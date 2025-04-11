@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import HeroSection from '@/components/dashboard/HeroSection';
@@ -8,10 +7,11 @@ import DoctorsSection from '@/components/dashboard/DoctorsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, User, FileSearch, IndianRupee, Layers } from 'lucide-react';
+import { FileText, Calendar, User, FileSearch, IndianRupee, Layers, Shield } from 'lucide-react';
 import AiChat from '@/components/ai/AiChat';
 import { Button } from '@/components/ui/button';
 import PaymentsSection from '@/components/payments/PaymentsSection';
+import HealthSchemesSection from '@/components/dashboard/HealthSchemesSection';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +50,6 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* New Demo section */}
                   <div className="bg-healthOrange-50 p-4 rounded-lg border border-healthOrange-100 mt-4">
                     <h4 className="font-medium text-healthOrange-700 mb-1 flex items-center">
                       <Layers className="h-4 w-4 mr-1" />
@@ -65,6 +64,23 @@ const Index: React.FC = () => {
                       onClick={() => navigate('/india-stack-test')}
                     >
                       Open Test Dashboard
+                    </Button>
+                  </div>
+
+                  <div className="bg-healthBlue-50 p-4 rounded-lg border border-healthBlue-100 mt-4">
+                    <h4 className="font-medium text-healthBlue-700 mb-1 flex items-center">
+                      <Shield className="h-4 w-4 mr-1" />
+                      Government Health Schemes
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Explore government healthcare schemes and programs you may be eligible for.
+                    </p>
+                    <Button 
+                      variant="health" 
+                      size="sm"
+                      onClick={() => navigate('/health-schemes')}
+                    >
+                      View Health Schemes
                     </Button>
                   </div>
                 </Card>
@@ -95,6 +111,12 @@ const Index: React.FC = () => {
                       onClick={() => navigate('/medical-records')}
                     >
                       <p className="font-medium">View Medical Records</p>
+                    </div>
+                    <div 
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate('/health-schemes')}
+                    >
+                      <p className="font-medium">Health Schemes</p>
                     </div>
                     <div 
                       className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors bg-healthOrange-50"
@@ -169,8 +191,11 @@ const Index: React.FC = () => {
       </div>
       
       <HealthIDSection />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <DoctorsSection />
+        <HealthSchemesSection />
+      </div>
       <AiFeatures />
-      <DoctorsSection />
     </Layout>
   );
 };
