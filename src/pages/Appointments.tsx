@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfToday, isBefore } from 'date-fns';
-import { CalendarIcon, Clock, MapPin, User, Calendar as CalendarIcon2, Loader2, Plus, Video, MessageSquare, IndianRupee } from 'lucide-react';
+import { CalendarIcon, Clock, MapPin, User, Calendar as CalendarIcon2, Loader2, Plus, Video, MessageSquare, IndianRupee, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,6 +44,42 @@ const timeSlots = [
   '12:00', '12:30', '14:00', '14:30', '15:00', '15:30',
   '16:00', '16:30', '17:00', '17:30'
 ];
+
+// Function to get status badge based on appointment status
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'confirmed':
+      return (
+        <Badge variant="outline" className="bg-healthGreen-50 text-healthGreen-700 border-healthGreen-200">
+          Confirmed
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          Pending
+        </Badge>
+      );
+    case 'cancelled':
+      return (
+        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          Cancelled
+        </Badge>
+      );
+    case 'completed':
+      return (
+        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+          Completed
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+          {status}
+        </Badge>
+      );
+  }
+};
 
 // Consultation fee based on specialization (demo data)
 const getConsultationFee = (specialization: string): number => {
@@ -115,7 +150,10 @@ const Appointments = () => {
         .order('appointment_time', { ascending: true });
       
       if (error) throw error;
-      return data as Appointment[];
+      
+      // Cast data as Appointment[] - the data from Supabase should include payment_status and payment_amount fields
+      // from our SQL migration, but TypeScript doesn't know that yet
+      return data as unknown as Appointment[];
     },
     enabled: !!user
   });

@@ -37,18 +37,18 @@ const AppointmentPayment: React.FC<AppointmentPaymentProps> = ({
     setLoading(true);
     try {
       // Create a payment record in the database
-      const { data, error } = await supabase
+      // We need to handle the payment table manually since it might not be in the types yet
+      const { data: paymentData, error: paymentError } = await supabase
         .from('payments')
         .insert({
           appointment_id: appointmentId,
-          amount,
+          amount: amount,
           payment_method: paymentMethod,
           status: 'completed' // For demo, we'll mark it as completed immediately
         })
-        .select()
-        .single();
+        .select();
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
 
       // Update the appointment payment status
       const { error: updateError } = await supabase
