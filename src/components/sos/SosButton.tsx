@@ -15,13 +15,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+interface UserProfile {
+  id: string;
+  guardian_phone?: string;
+  // Add other profile fields as needed
+}
+
 const SosButton: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
   
-  // Fetch guardian contact information
+  // Fetch guardian contact information with proper type handling
   const { data: profile, isLoading } = useQuery({
     queryKey: ['guardian-contact', user?.id],
     queryFn: async () => {
@@ -34,7 +40,7 @@ const SosButton: React.FC = () => {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as UserProfile;
     },
     enabled: !!user
   });

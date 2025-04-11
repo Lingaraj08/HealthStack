@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -83,7 +82,7 @@ const ChatConsultation = () => {
     if (!user || !appointmentId) return;
     
     try {
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from('consultation_messages')
         .select('*')
         .eq('appointment_id', appointmentId)
@@ -91,7 +90,7 @@ const ChatConsultation = () => {
       
       if (error) throw error;
       
-      setMessages(data as Message[]);
+      setMessages(messagesData as Message[]); 
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
@@ -142,14 +141,16 @@ const ChatConsultation = () => {
     if (!newMessage.trim() || !user || !appointmentId || !userRole) return;
     
     try {
+      const messageData = {
+        appointment_id: appointmentId,
+        sender_id: user.id,
+        content: newMessage.trim(),
+        sender_role: userRole
+      };
+      
       const { error } = await supabase
         .from('consultation_messages')
-        .insert({
-          appointment_id: appointmentId,
-          sender_id: user.id,
-          content: newMessage.trim(),
-          sender_role: userRole
-        });
+        .insert(messageData as any);
       
       if (error) throw error;
       

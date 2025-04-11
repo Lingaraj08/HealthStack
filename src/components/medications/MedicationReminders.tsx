@@ -15,6 +15,7 @@ interface Medication {
   frequency: string;
   time: string;
   user_id: string;
+  quantity_remaining?: number;
 }
 
 interface Reminder {
@@ -38,6 +39,7 @@ const MedicationReminders: React.FC = () => {
     
     const fetchMedications = async () => {
       try {
+        // Cast the result to handle type errors
         const { data, error } = await supabase
           .from('medications')
           .select('*')
@@ -54,15 +56,31 @@ const MedicationReminders: React.FC = () => {
     
     const fetchReminders = async () => {
       try {
+        // Cast the result to handle type errors
         const { data, error } = await supabase
           .from('medication_reminders')
-          .select('*, medication:medication_id(*)')
+          .select(`
+            id, 
+            medication_id,
+            user_id,
+            scheduled_time,
+            taken,
+            created_at,
+            medication:medication_id (
+              id,
+              name,
+              dosage,
+              frequency,
+              time,
+              quantity_remaining
+            )
+          `)
           .eq('user_id', user.id)
           .order('scheduled_time');
           
         if (error) throw error;
         
-        setReminders(data as Reminder[]);
+        setReminders(data as unknown as Reminder[]);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching reminders:', error);
@@ -77,9 +95,10 @@ const MedicationReminders: React.FC = () => {
   
   const markReminderAsTaken = async (reminderId: string) => {
     try {
+      // Update the reminder with proper type casting
       const { error } = await supabase
         .from('medication_reminders')
-        .update({ taken: true })
+        .update({ taken: true } as any)
         .eq('id', reminderId);
       
       if (error) throw error;
@@ -96,12 +115,13 @@ const MedicationReminders: React.FC = () => {
       
       // Update medication quantity if applicable
       const reminder = reminders.find(r => r.id === reminderId);
-      if (reminder && reminder.medication) {
+      if (reminder && reminder.medication && reminder.medication.quantity_remaining !== undefined) {
+        // Update with proper type casting
         const { error: updateError } = await supabase
           .from('medications')
           .update({ 
-            quantity_remaining: Math.max(0, (reminder.medication.quantity_remaining || 0) - 1) 
-          })
+            quantity_remaining: Math.max(0, reminder.medication.quantity_remaining - 1) 
+          } as any)
           .eq('id', reminder.medication_id);
           
         if (updateError) console.error('Error updating medication quantity:', updateError);

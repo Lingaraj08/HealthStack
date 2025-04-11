@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,17 +14,19 @@ import { Calendar, Clock, User, Video, MessageSquare, Stethoscope, CheckCircle2,
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 interface Appointment {
   id: string;
   patient_id: string;
   appointment_time: string;
   status: string;
   notes: string;
-  patient: {
-    id: string;
-    first_name: string;
-    last_name: string;
-  };
+  patient: Patient;
 }
 
 const DoctorDashboard = () => {
@@ -34,14 +35,12 @@ const DoctorDashboard = () => {
   const { user, isDoctor } = useAuth();
   const [availability, setAvailability] = useState(true);
   
-  // Redirect if not doctor
   React.useEffect(() => {
     if (user && !isDoctor) {
       navigate('/');
     }
   }, [user, isDoctor, navigate]);
 
-  // Fetch doctor's appointments
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['doctor-appointments', user?.id],
     queryFn: async () => {
@@ -63,7 +62,7 @@ const DoctorDashboard = () => {
           appointment_time,
           status,
           notes,
-          patient:patient_id (
+          patient:profiles!patient_id (
             id,
             first_name,
             last_name
@@ -73,12 +72,11 @@ const DoctorDashboard = () => {
         .order('appointment_time', { ascending: true });
       
       if (error) throw error;
-      return data as Appointment[];
+      return data as unknown as Appointment[];
     },
     enabled: !!user && isDoctor
   });
 
-  // Update doctor availability
   const updateAvailabilityMutation = useMutation({
     mutationFn: async (available: boolean) => {
       if (!user) throw new Error('Not authenticated');
@@ -93,7 +91,7 @@ const DoctorDashboard = () => {
       
       const { error } = await supabase
         .from('doctors')
-        .update({ available_for_consultation: available })
+        .update({ available_for_consultation: available } as any)
         .eq('id', doctorData.id);
       
       if (error) throw error;
@@ -108,12 +106,11 @@ const DoctorDashboard = () => {
     }
   });
   
-  // Update appointment status
   const updateAppointmentStatusMutation = useMutation({
     mutationFn: async ({ appointmentId, status }: { appointmentId: string, status: string }) => {
       const { error } = await supabase
         .from('appointments')
-        .update({ status })
+        .update({ status } as any)
         .eq('id', appointmentId);
       
       if (error) throw error;
@@ -128,24 +125,18 @@ const DoctorDashboard = () => {
     }
   });
 
-  // Start video consultation
   const startConsultation = (appointmentId: string, patientName: string) => {
-    // In a real app, this would create a video chat room and redirect
     navigate(`/video-consultation/${appointmentId}`);
   };
   
-  // Start chat consultation
   const startChatConsultation = (appointmentId: string, patientName: string) => {
-    // In a real app, this would open a chat interface
     navigate(`/chat-consultation/${appointmentId}`);
   };
   
-  // Handle availability toggle
   const handleAvailabilityToggle = (checked: boolean) => {
     updateAvailabilityMutation.mutate(checked);
   };
 
-  // Filter appointments by status
   const pendingAppointments = appointments?.filter(
     appointment => appointment.status === 'pending'
   ) || [];
@@ -214,7 +205,6 @@ const DoctorDashboard = () => {
             <TabsTrigger value="past">Past Consultations</TabsTrigger>
           </TabsList>
           
-          {/* Pending Appointments Tab */}
           <TabsContent value="pending">
             {isLoading ? (
               <div className="flex justify-center p-8">
@@ -297,7 +287,6 @@ const DoctorDashboard = () => {
             )}
           </TabsContent>
           
-          {/* Upcoming Appointments Tab */}
           <TabsContent value="upcoming">
             {isLoading ? (
               <div className="flex justify-center p-8">
@@ -371,7 +360,6 @@ const DoctorDashboard = () => {
             )}
           </TabsContent>
           
-          {/* Past Appointments Tab */}
           <TabsContent value="past">
             {isLoading ? (
               <div className="flex justify-center p-8">
