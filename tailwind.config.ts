@@ -68,13 +68,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// HealthStack custom colors
+				// HealthStack custom colors - Updated with AWS-inspired color palette
 				healthBlue: {
 					100: '#E6F3FF',
 					200: '#B3DFFF',
 					300: '#80CBFF',
 					400: '#4DB7FF',
-					500: '#1976d2',  // Primary blue
+					500: '#0073BB',  // Primary blue (AWS-like)
 					600: '#005F92',
 					700: '#00476D',
 					800: '#003049',
@@ -85,35 +85,45 @@ export default {
 					200: '#B3EED6',
 					300: '#80E3BB',
 					400: '#4DD8A0',
-					500: '#2ecc71',  // Secondary green
-					600: '#238D6B',
-					700: '#1A6A50',
-					800: '#104635',
-					900: '#08231A',
+					500: '#16B673',  // Secondary green (AWS-like)
+					600: '#0B8D59',
+					700: '#0A6A44',
+					800: '#08462E',
+					900: '#04231A',
 				},
 				healthOrange: {
 					100: '#FFF3E6',
 					200: '#FFDDB3',
 					300: '#FFC680',
 					400: '#FFB04D',
-					500: '#FF9F1C',  // Primary orange
-					600: '#E68600',
-					700: '#B36700',
-					800: '#804900',
-					900: '#4D2C00',
+					500: '#FF9900',  // Primary orange (AWS orange)
+					600: '#E68A00',
+					700: '#B36B00',
+					800: '#804C00',
+					900: '#4D2E00',
 				},
 				healthRed: {
-					500: '#FF3B30',  // SOS red
+					500: '#D13212',  // AWS-like red
+				},
+				aws: {
+					orange: '#FF9900',
+					blue: '#0073BB',
+					teal: '#16B673',
+					red: '#D13212',
+					purple: '#545B64',
+					dark: '#232F3E',
+					light: '#FAFAFA',
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				md: 'calc(var(--radius) - 1px)',
+				sm: 'calc(var(--radius) - 2px)'
 			},
 			boxShadow: {
 				'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-				'card': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'card': '0 8px 12px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'aws': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
 			},
 			keyframes: {
 				'accordion-down': {
