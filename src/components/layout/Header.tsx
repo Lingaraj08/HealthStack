@@ -12,6 +12,8 @@ const Header = () => {
   const { user, loading } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // local placeholder flag to avoid an eternal loading pulse if auth stalls
+  const [showAuthPlaceholder, setShowAuthPlaceholder] = useState(true);
   
   // Function to check if a path is active
   const isActive = (path: string) => {
@@ -36,6 +38,9 @@ const Header = () => {
       document.documentElement.classList.add('dark');
       setIsDarkMode(true);
     }
+    // If auth doesn't resolve quickly, hide the placeholder so the header doesn't look stuck
+    const timer = setTimeout(() => setShowAuthPlaceholder(false), 1200);
+    return () => clearTimeout(timer);
   }, []);
   
   return (
@@ -99,7 +104,7 @@ const Header = () => {
               {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
             </Button>
 
-            {loading ? (
+            {loading && showAuthPlaceholder ? (
               <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
             ) : user ? (
               <>

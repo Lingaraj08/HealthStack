@@ -10,7 +10,7 @@ const MoodDetectionFeature: React.FC = () => {
   const [showQuote, setShowQuote] = useState<boolean>(false);
 
   const handleMoodDetected = (mood: Mood) => {
-    console.log('Mood detected:', mood);
+  // mood detected: handled (debug log removed)
     setDetectedMood(mood);
     setShowQuote(true);
   };

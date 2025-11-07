@@ -121,7 +121,7 @@ const VideoConsultation = () => {
       });
       
       newPeer.on('open', (id: string) => {
-        console.log('My peer ID is:', id);
+  // peer ID available (debug log removed)
         setPeerId(id);
         
         // Determine remote peer ID

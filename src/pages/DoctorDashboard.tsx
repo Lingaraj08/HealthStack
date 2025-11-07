@@ -49,19 +49,21 @@ const DoctorDashboard = () => {
     queryKey: ['doctor-info', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
-      
       const { data, error } = await supabase
         .from('doctors')
-        .select('*')
+        .select('id, user_id, full_name, specialization, available_for_consultation')
         .eq('user_id', user.id)
         .single();
-      
+
       if (error) throw error;
-      
-      setAvailability(data.available_for_consultation || false);
       return data;
     },
-    enabled: !!user && isDoctor
+    enabled: !!user && isDoctor,
+    // Keep the response cached briefly and set availability in onSuccess to avoid side-effects in queryFn
+    staleTime: 1000 * 60 * 2,
+    onSuccess: (data) => {
+      setAvailability(data?.available_for_consultation || false);
+    }
   });
 
   const { data: appointments, isLoading } = useQuery({
