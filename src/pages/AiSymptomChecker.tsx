@@ -77,7 +77,7 @@ const AiSymptomChecker = () => {
         let doctorSpecialty = '';
         let doctorReason = '';
         
-        console.log("Using API key for enhanced AI responses:", AI_CONFIG.API_KEY_AVAILABLE ? "API key available" : "API key not available");
+  // debug: API key availability checked
         
         if (symptoms.includes('headache') || symptoms.includes('head pain') || symptoms.includes('migraine')) {
           response = getRandomResponse(symptomResponses.headache);

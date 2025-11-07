@@ -25,14 +25,20 @@ const DoctorsList: React.FC = () => {
   const { data: doctors, isLoading, error } = useQuery({
     queryKey: ['doctors'],
     queryFn: async () => {
+      // Fetch only the fields we use in the list to reduce payload
       const { data, error } = await supabase
         .from('doctors')
-        .select('*')
-        .order('rating', { ascending: false });
-      
+        .select('id, full_name, specialization, years_of_experience, hospital, rating, available_for_consultation, avatar_url')
+        .order('rating', { ascending: false })
+        .limit(30);
+
       if (error) throw error;
       return data as Doctor[];
-    }
+    },
+    // Cache results for 5 minutes and avoid refetching on window focus to reduce network churn
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   if (isLoading) {

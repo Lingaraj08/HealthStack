@@ -91,7 +91,7 @@ const AiChat: React.FC<AiChatProps> = ({ isFloating = false }) => {
     setIsLoading(true);
 
     // Log that we're using the API key for enhanced responses
-    console.log("Using API key for enhanced AI responses:", AI_CONFIG.API_KEY_AVAILABLE ? "API key available" : "API key not available");
+  // debug: API key availability checked
 
     // Generate AI response with enhanced variability
     setTimeout(() => {

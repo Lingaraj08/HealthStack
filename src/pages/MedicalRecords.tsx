@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import RecordDetails from '@/components/records/RecordDetails';
 import RecordForm from '@/components/records/RecordForm';
 import RecordsList from '@/components/records/RecordsList';
@@ -17,24 +18,29 @@ const MedicalRecords = () => {
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const { data: records, isLoading, error } = useQuery({
     queryKey: ['medicalRecords', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
-      
+
+      // Fetch only the current user's records to reduce payload and speed up response
       const { data, error } = await supabase
         .from('medical_records')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data || [];
     },
     enabled: !!user
   });
   
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const addRecordMutation = useMutation({
     mutationFn: async (record: {
       title: string;
@@ -86,7 +92,7 @@ const MedicalRecords = () => {
       });
     },
     onError: (error) => {
-      console.error('Error adding record:', error);
+      // Report to user; avoid noisy console logs in production UI
       toast({
         title: "Error",
         description: "Failed to add medical record: " + (error as Error).message,
@@ -97,23 +103,26 @@ const MedicalRecords = () => {
   
   const deleteRecordMutation = useMutation({
     mutationFn: async (recordId: string) => {
+      // Ensure we delete only the current user's record
       const { error } = await supabase
         .from('medical_records')
         .delete()
-        .eq('id', recordId);
-      
+        .eq('id', recordId)
+        .eq('user_id', user?.id);
+
       if (error) throw error;
       return recordId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medicalRecords', user?.id] });
+      setDeletingId(null);
       toast({
         title: "Record Deleted",
         description: "The medical record has been deleted"
       });
     },
     onError: (error) => {
-      console.error('Error deleting record:', error);
+      setDeletingId(null);
       toast({
         title: "Error",
         description: "Failed to delete medical record: " + (error as Error).message,
@@ -141,6 +150,7 @@ const MedicalRecords = () => {
   };
 
   const handleDeleteRecord = (id: string) => {
+    setDeletingId(id);
     deleteRecordMutation.mutate(id);
   };
 
@@ -150,7 +160,7 @@ const MedicalRecords = () => {
         <div className="container py-12">
           <div className="flex flex-col items-center justify-center gap-4">
             <p className="text-lg">Please sign in to view your medical records.</p>
-            <Button onClick={() => window.location.href = '/auth'}>
+            <Button onClick={() => navigate('/auth')}>
               Sign In
             </Button>
           </div>
@@ -228,7 +238,7 @@ const MedicalRecords = () => {
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSubmit={handleAddRecord}
-            isSubmitting={addRecordMutation.isPending}
+            isSubmitting={addRecordMutation.isLoading}
           />
         </div>
         
@@ -236,8 +246,8 @@ const MedicalRecords = () => {
           records={records || []}
           onDelete={handleDeleteRecord}
           onViewDetails={(id) => setSelectedRecordId(id)}
-          isDeleting={deleteRecordMutation.isPending}
-          deletingId={deleteRecordMutation.variables}
+          isDeleting={deleteRecordMutation.isLoading}
+          deletingId={deletingId}
           onOpenAddRecord={() => setIsAddModalOpen(true)}
         />
       </div>

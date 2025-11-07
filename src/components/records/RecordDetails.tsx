@@ -28,7 +28,7 @@ const RecordDetails: React.FC<RecordDetailsProps> = ({ recordId, onBack }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('medical_records')
-        .select('*')
+        .select('id, title, record_type, description, file_url, created_at, updated_at')
         .eq('id', recordId)
         .single();
       

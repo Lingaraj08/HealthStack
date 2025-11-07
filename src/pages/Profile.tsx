@@ -14,12 +14,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProfileData } from '@/types/profile';
 import { Camera, Save, User, UserCircle, Phone, MapPin, Calendar, HeartPulse, Users, Activity, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
@@ -34,57 +34,52 @@ const Profile = () => {
   const [emergencyContact, setEmergencyContact] = useState('');
   const [healthId, setHealthId] = useState('');
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      if (!user) return;
+  const queryClient = useQueryClient();
 
+  // Use react-query to fetch profile (cached, faster on repeated visits)
+  const { data: fetchedProfile, isLoading, isError, error } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+      if (error) throw error;
+      return data as ProfileData;
+    },
+    enabled: !!user && !authLoading,
+    staleTime: 1000 * 60 * 5, // cache 5 minutes
+    retry: 1,
+  });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setProfileData(data as ProfileData);
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
-        setPhone(data.phone_number || '');
-        setDob(data.date_of_birth || '');
-        setGender(data.gender || '');
-        setAddress(data.address || '');
-        setBloodType(data.blood_type || '');
-        setEmergencyContact(data.emergency_contact || '');
-        setHealthId(data.health_id || '');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error fetching profile",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+  // Keep local form state in sync when profile arrives
+  useEffect(() => {
+    if (fetchedProfile) {
+      setProfileData(fetchedProfile);
+      setFirstName(fetchedProfile.first_name || '');
+      setLastName(fetchedProfile.last_name || '');
+      setPhone(fetchedProfile.phone_number || '');
+      setDob(fetchedProfile.date_of_birth || '');
+      setGender(fetchedProfile.gender || '');
+      setAddress(fetchedProfile.address || '');
+      setBloodType(fetchedProfile.blood_type || '');
+      setEmergencyContact(fetchedProfile.emergency_contact || '');
+      setHealthId(fetchedProfile.health_id || '');
     }
-  };
+  }, [fetchedProfile]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [user]);
+    // If auth resolved and no user, redirect to auth (PrivateRoute should already do this)
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+    // otherwise react-query will fetch the profile automatically
+  }, [authLoading, user, navigate]);
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setUploading(true);
-      
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
-      }
-
-      const file = event.target.files[0];
+  const uploadMutation = useMutation<string, Error, File>({
+    mutationFn: async (file: File) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user!.id}/avatar.${fileExt}`;
 
@@ -92,42 +87,40 @@ const Profile = () => {
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: data.publicUrl })
         .eq('id', user!.id);
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      toast({
-        title: 'Success',
-        description: 'Avatar updated successfully!',
-      });
-      
-      fetchProfile();
-    } catch (error: any) {
-      toast({
-        title: 'Error updating avatar',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
+      return data.publicUrl;
+    },
+    onMutate: () => setUploading(true),
+    onSuccess: (publicUrl) => {
+      toast({ title: 'Success', description: 'Avatar updated successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      setUploading(false);
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error updating avatar', description: err.message || String(err), variant: 'destructive' });
       setUploading(false);
     }
+  });
+
+  const uploadAvatar = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+    const file = event.target.files[0];
+    uploadMutation.mutate(file);
   };
 
-  const updateProfile = async () => {
-    try {
-      setLoading(true);
-      
+  const queryClientForMutations = queryClient;
+  const updateMutation = useMutation<Partial<ProfileData>, Error, void>({
+    mutationFn: async () => {
       if (!user) throw new Error('No user');
 
       const updates = {
@@ -144,29 +137,23 @@ const Profile = () => {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-
+      const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
       if (error) throw error;
-
-      toast({
-        title: 'Profile updated!',
-        description: 'Your profile has been updated successfully.',
-      });
-      
-      fetchProfile();
-    } catch (error: any) {
-      toast({
-        title: 'Error updating profile',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+      return updates;
+    },
+    onMutate: () => {},
+    onSuccess: () => {
+      toast({ title: 'Profile updated!', description: 'Your profile has been updated successfully.' });
+      queryClientForMutations.invalidateQueries({ queryKey: ['profile', user?.id] });
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error updating profile', description: err.message || String(err), variant: 'destructive' });
     }
-  };
+  });
+
+  // helper to trigger the update and expose loading state used by the UI
+      const updateProfile = () => updateMutation.mutate();
+      const loading = updateMutation.isPending;
 
   const getInitials = () => {
     if (firstName && lastName) {
@@ -195,9 +182,16 @@ const Profile = () => {
           </Button>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-10">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-healthBlue-600 border-t-transparent"></div>
+          </div>
+        ) : isError ? (
+              <div className="py-10 text-center">
+            <p className="text-red-400 mb-4">Error loading profile: {(error as any)?.message || String(error)}</p>
+            <div>
+              <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['profile', user?.id] })}>Retry</Button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

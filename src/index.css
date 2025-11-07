@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* stylelint:disable at-rule-no-unknown -- Allow Tailwind's @tailwind at-rules */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* stylelint:enable at-rule-no-unknown */
 
 @layer base {
   :root {
@@ -206,5 +209,4 @@
   background: #6b7280;
 }
 
-/* Add Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Add Google Fonts (import moved to top of file to satisfy CSS rules) */

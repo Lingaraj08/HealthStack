@@ -27,54 +27,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event);
+      async (_event, session) => {
+        // Update session and user
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // Fetch user role from profiles
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('user_role')
+              .eq('id', session.user.id)
+              .single();
+
+            if (!error) {
+              setUserRole(data?.user_role as UserRole || 'patient');
+            } else {
+              setUserRole('patient');
+            }
+          } catch (err) {
+            setUserRole('patient');
+          }
+        } else {
+          setUserRole(null);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    // Then check for existing session (robust: async/await with fallback)
+    (async () => {
+      let didTimeout = false;
+      const fallback = setTimeout(() => {
+        // If supabase.getSession stalls, ensure loading is cleared so UI doesn't hang
+        didTimeout = true;
+        setLoading(false);
+      }, 3000);
+
+      try {
+        const res = await supabase.auth.getSession();
+        if (didTimeout) return; // already timed out and cleared
+
+        const session = (res as any)?.data?.session ?? null;
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
           const { data, error } = await supabase
             .from('profiles')
             .select('user_role')
             .eq('id', session.user.id)
             .single();
-          
+
           if (error) {
             console.error('Error fetching user role:', error);
           } else {
             setUserRole(data?.user_role as UserRole || 'patient');
           }
-        } else {
-          setUserRole(null);
         }
-        
+      } catch (err) {
+        console.error('Error getting session:', err);
+      } finally {
+        clearTimeout(fallback);
         setLoading(false);
       }
-    );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Fetch user role from profiles
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching user role:', error);
-        } else {
-          setUserRole(data?.user_role as UserRole || 'patient');
-        }
-      }
-      
-      setLoading(false);
-    });
+    })();
 
     return () => subscription.unsubscribe();
   }, []);
