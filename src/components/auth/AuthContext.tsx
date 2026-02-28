@@ -4,7 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-type UserRole = 'patient' | 'doctor' | null;
+type UserRole = 'patient' | 'doctor' | 'laboratory' | 'admin' | null;
 
 type AuthContextType = {
   session: Session | null;
@@ -14,6 +14,8 @@ type AuthContextType = {
   userRole: UserRole;
   isDoctor: boolean;
   isPatient: boolean;
+  isLaboratory: boolean;
+  isAdmin: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,6 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userRole,
     isDoctor: userRole === 'doctor',
     isPatient: userRole === 'patient',
+    isLaboratory: userRole === 'laboratory',
+    isAdmin: userRole === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
