@@ -4,12 +4,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import UserProfileDropdown from '@/components/profile/UserProfileDropdown';
 import { useAuth } from '@/components/auth/AuthContext';
-import { Home, FileText, Calendar, User, Stethoscope, LogIn, Bot, Menu, X, Sun, Moon, Shield } from 'lucide-react';
+import { Home, FileText, Calendar, User, Stethoscope, LogIn, Bot, Menu, X, Sun, Moon, Shield, FlaskConical, Settings, CreditCard } from 'lucide-react';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading } = useAuth();
+  const { user, loading, userRole } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // local placeholder flag to avoid an eternal loading pulse if auth stalls
@@ -65,6 +65,24 @@ const Header = () => {
                   <Home className="h-4 w-4 mr-1" /> 
                   Dashboard
                 </Link>
+                {userRole === 'doctor' && (
+                  <Link to="/doctor-dashboard" className={`flex items-center ${isActive('/doctor-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
+                    <Stethoscope className="h-4 w-4 mr-1" /> 
+                    Doctor Panel
+                  </Link>
+                )}
+                {userRole === 'laboratory' && (
+                  <Link to="/laboratory-dashboard" className={`flex items-center ${isActive('/laboratory-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
+                    <FlaskConical className="h-4 w-4 mr-1" /> 
+                    Lab Panel
+                  </Link>
+                )}
+                {userRole === 'admin' && (
+                  <Link to="/admin-dashboard" className={`flex items-center ${isActive('/admin-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
+                    <Settings className="h-4 w-4 mr-1" /> 
+                    Admin Panel
+                  </Link>
+                )}
                 <Link to="/doctors" className={`flex items-center ${isActive('/doctors') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
                   <Stethoscope className="h-4 w-4 mr-1" /> 
                   Doctors
@@ -77,9 +95,9 @@ const Header = () => {
                   <FileText className="h-4 w-4 mr-1" /> 
                   Records
                 </Link>
-                <Link to="/health-schemes" className={`flex items-center ${isActive('/health-schemes') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
-                  <Shield className="h-4 w-4 mr-1" /> 
-                  Health Schemes
+                <Link to="/payments" className={`flex items-center ${isActive('/payments') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
+                  <CreditCard className="h-4 w-4 mr-1" /> 
+                  Payments
                 </Link>
                 <Link to="/profile" className={`flex items-center ${isActive('/profile') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'} hover:text-healthBlue-500 dark:hover:text-healthBlue-400 transition-colors`}>
                   <User className="h-4 w-4 mr-1" /> 
@@ -139,6 +157,24 @@ const Header = () => {
               <Home className="h-5 w-5 mr-3" /> 
               Dashboard
             </Link>
+            {userRole === 'doctor' && (
+              <Link to="/doctor-dashboard" className={`flex items-center ${isActive('/doctor-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
+                <Stethoscope className="h-5 w-5 mr-3" /> 
+                Doctor Panel
+              </Link>
+            )}
+            {userRole === 'laboratory' && (
+              <Link to="/laboratory-dashboard" className={`flex items-center ${isActive('/laboratory-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
+                <FlaskConical className="h-5 w-5 mr-3" /> 
+                Lab Panel
+              </Link>
+            )}
+            {userRole === 'admin' && (
+              <Link to="/admin-dashboard" className={`flex items-center ${isActive('/admin-dashboard') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
+                <Settings className="h-5 w-5 mr-3" /> 
+                Admin Panel
+              </Link>
+            )}
             <Link to="/doctors" className={`flex items-center ${isActive('/doctors') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
               <Stethoscope className="h-5 w-5 mr-3" /> 
               Doctors
@@ -151,9 +187,9 @@ const Header = () => {
               <FileText className="h-5 w-5 mr-3" /> 
               Records
             </Link>
-            <Link to="/health-schemes" className={`flex items-center ${isActive('/health-schemes') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
-              <Shield className="h-5 w-5 mr-3" /> 
-              Health Schemes
+            <Link to="/payments" className={`flex items-center ${isActive('/payments') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
+              <CreditCard className="h-5 w-5 mr-3" /> 
+              Payments
             </Link>
             <Link to="/profile" className={`flex items-center ${isActive('/profile') ? 'text-healthBlue-500 dark:text-healthBlue-400 font-medium' : 'text-gray-600 dark:text-gray-300'}`} onClick={() => setMobileMenuOpen(false)}>
               <User className="h-5 w-5 mr-3" /> 

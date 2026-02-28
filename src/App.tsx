@@ -21,6 +21,9 @@ import SosContacts from "./pages/SosContacts";
 import IndiaStackTest from "./pages/IndiaStackTest";
 import HealthSchemes from "./pages/HealthSchemes";
 import DoctorDashboard from "./pages/DoctorDashboard";
+import LaboratoryDashboard from "./pages/LaboratoryDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import Payments from "./pages/Payments";
 import { AuthProvider } from "./components/auth/AuthContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import Terms from "./pages/Terms";
@@ -88,6 +91,21 @@ const App = () => {
               <Route path="/doctor-dashboard" element={
                 <PrivateRoute>
                   <DoctorDashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/laboratory-dashboard" element={
+                <PrivateRoute>
+                  <LaboratoryDashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/admin-dashboard" element={
+                <PrivateRoute>
+                  <AdminDashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/payments" element={
+                <PrivateRoute>
+                  <Payments />
                 </PrivateRoute>
               } />
               <Route path="/video-consultation/:appointmentId" element={
